@@ -55,3 +55,4 @@ binmode STDOUT, ":raw";
 
 print $json->utf8->encode($data);
 
+#perl -ne 'use HTML::Entities; while(<>) { print encode_entities($_); }'

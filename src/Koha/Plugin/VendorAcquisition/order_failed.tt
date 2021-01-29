@@ -1,0 +1,60 @@
+[% USE raw %]
+[% USE Asset %]
+[% USE KohaDates %]
+[% SET footerjs = 1 %]
+[% TRY %]
+    [% lang = "$plugin_dir/i18n/$lang_dialect"_".inc" %]
+    [% PROCESS "$lang" %]
+[% CATCH %]
+    [% TRY %]
+        [% lang = "$plugin_dir/i18n/$lang_all"_".inc" %]
+        [% PROCESS "$lang" %]
+    [% CATCH %]
+        [% PROCESS "$plugin_dir/i18n/default.inc" %]
+    [% END %]
+[% END %]
+[% INCLUDE 'doc-head-open.inc' %]
+
+<title>Koha: [% MSG.module_name %]: [% MSG.receive_order_failure %]</title>
+[% INCLUDE 'doc-head-close.inc' %]
+<body>
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">[% MSG.home %]</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">[% MSG.plugins %]</a> &rsaquo;  [% MSG.module_name %] &rsaquo; [% MSG.receive_order_failure %]</div>
+<div class="main container-fluid">
+  <div class="row">
+    <div class="col-sm-10 col-sm-push-2">
+      <main>
+        <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order_failur | html %]</h3>
+        <p>[% MSG.receive_order_failure_message | html %]</p>
+        [% IF !token_success %]
+        <p>[% MSG.receive_order_failed_token | html %]</p>
+        [% ELSIF query.request_method() != 'POST' %]
+        <p>[% MSG.receive_order_not_posted %]</p>
+        [% END %]
+        [% IF MSG.errors %]
+        <h4>[% order.errors %]</h4>
+        <ul>
+        [% FOREACH error IN order.errors %]
+          <li><span class="error">[% error | html %]</span></li>
+        [% END %]
+        </ul>
+        [% END %]
+        [% IF order.warnings %]
+        <h4>[% MSG.warnings %]</h4>
+        <ul>
+        [% FOREACH warning IN order.warnings %]
+          <li><span class="warning">[% warning | html %]</span></li>
+        [% END %]
+        </ul>
+        [% END %]
+      </main>
+    </div>
+    <div class="col-sm-2 col-sm-pull-10">
+      <aside>
+        [% INCLUDE 'acquisitions-menu.inc' %]
+      </aside>
+    </div> <!-- /.col-sm-2.col-sm-pull-10 -->
+  </div>
+</div>
+[% INCLUDE 'intranet-bottom.inc' %]

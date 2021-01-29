@@ -2,8 +2,8 @@ use ExtUtils::MakeMaker;
 
 
 WriteMakefile(
-    NAME            => 'Koha::Plugin::AdlibrisAcquisition',
-    VERSION_FROM    => 'src/Koha/Plugin/AdlibrisAcquisition.pm',
+    NAME            => 'Koha::Plugin::VendorAcquisition',
+    VERSION_FROM    => 'src/Koha/Plugin/VendorAcquisition.pm',
     NO_MYMETA       => 1
 );
 
