@@ -10,7 +10,7 @@
          "ItemBarcode" : "7070476228B6",
          "ItemCallnumber" : "Hc(f)",
          "ItemCallnumberStandard" : "SAB",
-         "ItemEstimatedDeliveryDate" : "2020-12-  10T10:30:00Z",
+         "ItemEstimatedDeliveryDate" : "2020-12-10T10:30:00Z",
          "ItemID" : "n0sc9q40lnnvgh4c",
          "ItemIDStandard" : "LIBRIS",
          "ItemNote" : "Ordered to replace ET24909230",
@@ -32,7 +32,7 @@
          "ItemBarcode" : "707047622DE6",
          "ItemCallnumber" : "30.203",
          "ItemCallnumberStandard" : "Dewey",
-         "ItemEstimatedDeliveryDate" : "2020-10-  14T10:30:00Z",
+         "ItemEstimatedDeliveryDate" : "2020-10-14T10:30:00Z",
          "ItemID" : "dp5l0fcnb3hkdgwj",
          "ItemIDStandard" : "LIBRIS",
          "ItemNote" : "Ordered by request from user 12398921389",
@@ -51,5 +51,5 @@
    "OrderNote" : "This order was made for the legal department",
    "OrderNumber" : "123123",
    "Vendor" : "Adlibris",
-   "WhenOrderedTimestamp" : "2021-01-18 10T14:50:04Z"
+   "WhenOrderedTimestamp" : "2021-01-10T14:50:04Z"
 }

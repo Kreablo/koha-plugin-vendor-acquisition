@@ -29,7 +29,7 @@
         <p>[% MSG.receive_order_failure_message | html %]</p>
         [% IF !token_success %]
         <p>[% MSG.receive_order_failed_token | html %]</p>
-        [% ELSIF query.request_method() != 'POST' %]
+        [% ELSIF request_method != 'POST' %]
         <p>[% MSG.receive_order_not_posted %]</p>
         [% END %]
         [% IF MSG.errors %]

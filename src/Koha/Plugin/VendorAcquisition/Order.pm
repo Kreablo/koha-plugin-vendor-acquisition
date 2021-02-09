@@ -26,7 +26,7 @@ use Koha::Plugin::VendorAcquisition::OrderRecord;
 use Koha::Acquisition::Order;
 use Koha::Acquisition::Basket;
 use Koha::Acquisition::Baskets;
-use Data::Dumper;
+use MIME::Base64;
 
 sub new {
     my ( $class, $plugin, $lang, $json_text ) = @_;
@@ -64,6 +64,13 @@ sub new_from_json {
     eval {
         $data = $json->decode($json_text);
     };
+
+    if ($@) {
+        eval {
+            $decoded = decode_base64($json_text);
+            $data = $json->utf8->decode($decoded);
+        };
+    }
 
     if ($@) {
         $self->_err('Could not parse JSON data: ' . $@);
@@ -535,6 +542,7 @@ sub parse_datetime {
 
     if ($@) {
         $self->_err("Failed to parse datetime of field '$fieldname': " . $@);
+        warn "Failed to parse datetime of field '$fieldname': " . $@;
     }
 
     return $datetime;

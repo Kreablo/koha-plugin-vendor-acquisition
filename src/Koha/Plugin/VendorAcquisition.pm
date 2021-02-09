@@ -635,7 +635,8 @@ sub vendor_order_receive {
                 configure_url => $configure_url,
                 order => $order,
                 token       => $self->retrieve_data('token'),
-                token_success => $token_success
+                token_success => $token_success,
+                request_method => $cgi->request_method
                 );
 
             $self->output_html( $template->output() );
@@ -673,18 +674,19 @@ sub vendor_order_receive {
          });
 
       $template->param(
-            lang_dialect => $lang,
-            lang_all => $lang_split[0],
-            plugin_dir => $self->bundle_path,
-            receive_url => $receive_url,
-            CLASS       => $self->{'class'},
-            METHOD      => scalar $self->{'cgi'}->param('method'),
-            PLUGIN_PATH => $self->get_plugin_http_path(),
-            PLUGIN_DIR  => $self->get_plugin_dir(),
-            LANG        => C4::Languages::getlanguage($self->{'cgi'}),
-            token       => $self->retrieve_data('token'),
-            token_success => $token_success
-            );
+          lang_dialect => $lang,
+          lang_all => $lang_split[0],
+          plugin_dir => $self->bundle_path,
+          receive_url => $receive_url,
+          CLASS       => $self->{'class'},
+          METHOD      => scalar $self->{'cgi'}->param('method'),
+          PLUGIN_PATH => $self->get_plugin_http_path(),
+          PLUGIN_DIR  => $self->get_plugin_dir(),
+          LANG        => C4::Languages::getlanguage($self->{'cgi'}),
+          token       => $self->retrieve_data('token'),
+          token_success => $token_success,
+          request_method => $cgi->request_method
+          );
 
         $self->output_html( $template->output() );
     }

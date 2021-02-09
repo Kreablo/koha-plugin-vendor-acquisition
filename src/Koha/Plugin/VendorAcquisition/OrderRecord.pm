@@ -357,6 +357,7 @@ sub validate_item_data {
     }
 
     if ($@) {
+        warn "Failed to parse MARC record: $@";
         $self->_err("Failed to parse MARC record: $@");
         return;
     }
