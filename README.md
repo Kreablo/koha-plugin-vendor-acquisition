@@ -14,6 +14,14 @@ koha-conf.xml.
 * Go to Koha administration -> Manage plugins.
 * Click on "upload plugin" and upload the kpz-file.
 
+## Security token
+
+As protection against cross site request forgery attacks, the plugin
+generates a random token upon installation.  This token is part of the
+URL that needs to be communicated to the vendor.  Note that if the
+plugin is reinstalled, this token may be regenerated and then a new
+link needs to be communicated to the vendor.
+
 ## Configuration
 
 The plugin can be configured with the parameters described below.  At
@@ -63,6 +71,14 @@ edit these field as the order is received.
 The customer number must match the identity string that the vendor use
 to identify the library.  You can use * to apply the same default
 rules without giving an explicit customer number.
+
+## Permissions
+
+This plugin is only accessible to users that have staff access.  On top of that:
+
+- to receive orders a user must have the permission **plugins/vendor_order_receive**,
+- to install the plugin the user needs the permission **plugins/manage**,
+- to configure the plugin the user needs the permission **plugins/configure**.
 
 ## Building
 
