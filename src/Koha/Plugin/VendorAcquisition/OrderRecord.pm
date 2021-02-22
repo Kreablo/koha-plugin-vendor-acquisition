@@ -72,6 +72,7 @@ sub new_from_hash {
     $self->{record} = $record;
 
     $self->prepare_record;
+    $self->prepare_currency;
 
     if (defined $self->{record_id}) {
         $self->load_items;
@@ -162,7 +163,7 @@ sub update_from_cgi {
 }
 
 sub fields {
-    return qw (record_id author barcode isbn  callnumber callnumber_standard estimated_delivery_date biblioid biblioid_standard note record currency price price_inc_vat price_rrp publisher quantity title vat year biblionumber ordernumber merge_biblionumber);
+    return qw (record_id author barcode isbn  callnumber callnumber_standard estimated_delivery_date biblioid biblioid_standard note record currency_code price price_inc_vat price_rrp publisher quantity title vat year biblionumber ordernumber merge_biblionumber);
 }
 
 sub load_record_id {
@@ -199,6 +200,8 @@ sub store {
     my $sql;
     my @binds = ();
 
+    warn "store record with ordernumber: " . $self->{ordernumber};
+
     if (defined $self->{record_id}) {
         $sql = "UPDATE `$recordtable` ";
     } else {
@@ -217,7 +220,7 @@ SET order_id = ?,
     biblioid_standard = ?,
     note = ?,
     record = ?,
-    currency = ?,
+    currency_code = ?,
     price = ?,
     price_inc_vat = ?,
     price_rrp = ?,
@@ -231,6 +234,7 @@ SET order_id = ?,
     merge_biblionumber = ?
 EOF
 
+    my $record_xml = defined $self->{record} ? $self->{record}->as_xml_record : undef;
 
         @binds = (
             $self->{order}->{order_id},
@@ -243,8 +247,8 @@ EOF
             $self->{biblioid},
             $self->{biblioid_standard},
             $self->{note},
-            $self->{record}->as_xml_record,
-            $self->{currency},
+            $record_xml,
+            $self->{currency_code},
             $self->{price},
             $self->{price_inc_vat},
             $self->{price_rrp},
@@ -305,11 +309,11 @@ sub validate_item_data {
         ItemCallnumber => 1,
         ItemCallnumberStandard => 1,
         ItemEstimatedDeliveryDate => 1,
-        ItemID => 2,
-        ItemIDStandard => 2,
+        ItemID => 1,
+        ItemIDStandard => 1,
         ItemNote => 1,
-        MARCRecord => 2,
-        MARCRecordFormat => 2,
+        MARCRecord => 1,
+        MARCRecordFormat => 1,
         Price => 1,
         PriceIncVAT => 1,
         PriceRRP => 1,
@@ -340,30 +344,8 @@ sub validate_item_data {
 
     my $format = lc $item_data->{MARCRecordFormat};
 
-    if ($format eq 'marc21') {
-        eval {
-            $record = MARC::Record::new_from_usmarc($item_data->{MARCRecord});
-        };
-    } elsif ($format eq 'marcxml') {
-        eval {
-            $MARC::File::XML::_load_args{BinaryEncoding} = 'utf-8';
-            $MARC::File::XML::_load_args{RecordFormat} = 'USMARC';
-
-            $record = MARC::Record::new_from_xml($item_data->{MARCRecord});
-        };
-    } else {
-        $self->_err("Unknown marc record format: $format");
-        return;
-    }
-
-    if ($@) {
-        warn "Failed to parse MARC record: $@";
-        $self->_err("Failed to parse MARC record: $@");
-        return;
-    }
-
     $self->{author} = $self->data('Author');
-    $self->{currency} = $self->data('Currency');
+    $self->{currency_code} = $self->data('Currency');
     $self->{isbn} = $self->data('ISBN');
     $self->{barcode} = $self->data('ItemBarcode');
     $self->{callnumber} = $self->data('ItemCallnumber');
@@ -381,6 +363,31 @@ sub validate_item_data {
     $self->{biblioid_standard} = $self->data('ItemIDStandard');
     $self->{biblionumber} = undef;
 
+    if (defined $format && $format != '') {
+        if ($format eq 'marc21') {
+            eval {
+                $record = MARC::Record::new_from_usmarc($item_data->{MARCRecord});
+            };
+        } elsif ($format eq 'marcxml') {
+            eval {
+                $MARC::File::XML::_load_args{BinaryEncoding} = 'utf-8';
+                $MARC::File::XML::_load_args{RecordFormat} = 'USMARC';
+
+                $record = MARC::Record::new_from_xml($item_data->{MARCRecord});
+            };
+        } else {
+            $self->_err("Unknown marc record format: $format");
+            return;
+        }
+
+        if ($@) {
+            $self->_err("Failed to parse MARC record: $@");
+            return;
+        }
+    } else {
+        $record = $self->build_record
+    }
+
     if (!$self->{quantity} =~ /^\d+$/) {
         $self->_err("Quantity is not an integer!");
         return;
@@ -388,12 +395,80 @@ sub validate_item_data {
 
     $self->{record} = $record;
     $self->prepare_record;
+    $self->prepare_currency;
 
     $self->load_record_id;
 
     if (defined $self->{record_id}) {
         $self->load_items;
     }
+}
+
+sub prepare_currency {
+    if (defined $self->{currency_code}) {
+
+        my $currency = Koha::Acquisition::Currency->find({ isocode => $self->{currency_code}});
+        if (defined $currency) {
+            $self->{currency} = $currency->currency;
+        } else {
+            $self->_warn("The currency '" . $self->{currency_code} . "' is not defined!");
+        }
+    }
+
+}
+
+sub build_record {
+    my $self = shift;
+
+    my $record = MARC::Record->new();
+
+    if (defined $self->{biblioid}) {
+        $record->add_fields(MARC::Field->new('001', $self->{biblioid}));
+    }
+    if (defined $self->{biblioid_standard}) {
+        $record->add_fields(MARC::Field->new('003', $self->{biblioid_standard}));
+    }
+    if (defined $self->{isbn}) {
+        $record->add_fields(MARC::Field->new('020', ' ', ' ', 'a' => $self->{isbn}));
+    }
+    if (defined $self->{author}) {
+        $record->add_fields(MARC::Field->new('100', '1', ' ', 'a' => $self->{author}));
+    }
+    my $titlefield;
+    if (defined $self->{title}) {
+        $titlefield = MARC::Field->new('245', '1', '0', 'a' => $self->{title});
+        $record->add_fields($titlefield);
+    }
+    my $publisherfield;
+    if (defined $self->{publisher}) {
+        $publisherfield = MARC::Field->new('260', ' ', ' ', 'b' => $self->{publisher});
+        $record->add_fields($publisherfield);
+    }
+    if (defined $self->{year}) {
+        if (defined $publisherfield) {
+            $titlefield->add_subfields('c' => $self->{year});
+        } else {
+            $publisherfield = MARC::Field->new('260', ' ', ' ', 'c' => $self->{year});
+            $record->add_fields($publisherfield);
+        }
+    }
+    if (defined $self->{callnumber_standard} && defined $self->{callnumber}) {
+        my $s = lc $self->{callnumber_standard};
+        my $ind1 = ' ';
+        if ($s eq 'lc') {
+            $ind1 = 0;
+        } elsif ($s eq 'ddc' || $s eq 'dewey') {
+            $ind1 = 1;
+        } elsif ($s eq 'sudoc') {
+            $ind1 = 3;
+        } elsif ($s eq 'sab') {
+            $ind1 = 8;
+        }
+        my $callnumberfield = MARC::Field->new('852', $ind1, ' ', 'c' => $self->{callnumber});
+        $record->add_fields($callnumberfield);
+    }
+
+    return $record;
 }
 
 sub load_items {
@@ -488,11 +563,15 @@ sub process {
 sub _err {
     my ($self, $msg) = @_;
 
+    warn "ERROR: $msg";
+
     push @{$self->{errors}}, $msg;
 }
 
 sub _warn {
     my ($self, $msg) = @_;
+
+    warn "WARNING: $msg";
 
     push @{$self->{warnings}}, $msg;
 }

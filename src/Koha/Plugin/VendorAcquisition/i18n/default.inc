@@ -8,7 +8,7 @@
    basket_type_new = "Create new basket",
    basket_type_new_order = "Create new basket named by the order number",
    biblioid = "Record identity",
-   biblioid_standard = "Stadnard for record identity",
+   biblioid_standard = "Standard for record identity",
    budget = "Budget",
    ccode = "Collection code",
    configuration = "Configuration",

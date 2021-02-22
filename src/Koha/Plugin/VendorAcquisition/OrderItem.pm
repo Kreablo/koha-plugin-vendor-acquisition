@@ -16,6 +16,7 @@
 package Koha::Plugin::VendorAcquisition::OrderItem;
 
 use Koha::Item;
+use C4::Context;
 
 sub new {
     my ( $class, $plugin, $lang, $record ) = @_;
@@ -96,7 +97,11 @@ sub initiate {
 
     if (defined $rule) {
         for my $field ('customer_number', 'notforloan', 'homebranch', 'holdingbranch', 'location', 'ccode', 'itemtype') {
-            $self->{$field} = $rule->{$field};
+            if (($field eq 'homebranch' || $field eq 'holdingbranch') && (!defined $rule->{field} || $rule->{field} eq '')) {
+                $self->{$field} = C4::Context->userenv->{'branch'};
+            } else {
+                $self->{$field} = $rule->{$field};
+            }
         }
     }
 }
@@ -107,8 +112,6 @@ sub store {
     my $dbh   = C4::Context->dbh;
 
     my $itemtable = $self->table_naming('item');
-
-    warn "item store";
 
     my $sql;
     my @binds = ();
@@ -222,11 +225,15 @@ sub fields {
 sub _err {
     my ($self, $msg) = @_;
 
+    warn "ERROR: $msg";
+
     push @{$self->{errors}}, $msg;
 }
 
 sub _warn {
     my ($self, $msg) = @_;
+
+    warn "WARNING: $msg";
 
     push @{$self->{warnings}}, $msg;
 }

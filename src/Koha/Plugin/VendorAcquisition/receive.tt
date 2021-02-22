@@ -32,7 +32,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 [% BLOCK save_buttons %]
   [% IF order.imported %]
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-xs-12 text-warning">
     [% MSG.order_already_processed %]
   </div>
 </div>
@@ -124,7 +124,8 @@ main h4, main h5, main h6 {
                 [% END %]
               </ul>
               [% END %]
-              <div>&nbsp               [% IF save && !order.all_errors %]<span id="save-success" class="text-success">[% MSG.order_save_success %]</span>[% END %]</div>
+              <div>&nbsp;  [% IF save && !order.all_errors %]<span id="save-success" class="text-success">[% MSG.order_save_success %]</span>[% END %]</div>
+              <div>&nbsp;  [% IF order.imported %]<span id="already-processed" class="text-warning">[% MSG.order_already_processed %]</span>[% END %]</div>
               [% IF order.warnings %]
               <hr />
               <h4>[% MSG.warnings | html %]</h4>
@@ -309,7 +310,7 @@ main h4, main h5, main h6 {
                   [% ELSE %]
                   <h5>[% MSG.errors | html  %]</h5>
                   <ul>
-                    [% FOREACH error IN record.errors %]
+                    [% FOREACH error IN record.all_errors() %]
                     <li><span class="error">[% error | html %]</span></li>
                     [% END %]
                   </ul>

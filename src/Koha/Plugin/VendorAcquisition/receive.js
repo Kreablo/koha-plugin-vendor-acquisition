@@ -11,6 +11,7 @@
     load();
     var init = function init () {
         setTimeout(function () { $('#save-success').fadeOut() }, 3000);
+        setTimeout(function () { $('#already-processed').fadeOut() }, 3000);
         var $baskettype = $('#basket-type-selector input[name="basket-type"]');
         var basketinput = function () {
             var type = $('#basket-type-selector input[name="basket-type"]:checked').val();

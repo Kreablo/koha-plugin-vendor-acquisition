@@ -26,6 +26,28 @@
          "Year" : "2019"
       },
       {
+         "Author" : "Popper, Karl R.",
+         "Currency" : "SEK",
+         "ISBN" : "9780691210841",
+         "ItemBarcode" : null,
+         "ItemCallnumber" : null,
+         "ItemCallnumberStandard" : null,
+         "ItemEstimatedDeliveryDate" : "2021-02-25T00:00:00Z",
+         "ItemID" : null,
+         "ItemIDStandard" : null,
+         "ItemNote" : null,
+         "MARCRecord" : null,
+         "MARCRecordFormat" : null,
+         "Price" : 277.36,
+         "PriceIncVAT" : 294.0016,
+         "PriceRRP" : 0,
+         "Publisher" : "Princeton University Press",
+         "Quantity" : 1,
+         "Title" : "The Open Society and Its Enemies",
+         "VAT" : 6,
+         "Year" : "2020"
+      },
+      {
          "Author" : "Holst, Christoffer",
          "Currency" : "SEK",
          "ISBN" : "9789188801524",

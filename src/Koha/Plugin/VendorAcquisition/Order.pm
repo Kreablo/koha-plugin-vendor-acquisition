@@ -39,7 +39,6 @@ sub new {
     $self->{lang} = $lang;
     $self->{records} = [];
     $self->{is_new} = 0;
-    $self->{imported} = 0;
 
 
     return $self;
@@ -52,6 +51,8 @@ sub new_from_json {
     my $data;
 
     my $self = __PACKAGE__->new( $plugin, $lang );
+
+    warn "new_from_json";
 
     $self->{json} = $json_text;
     $self->{date_format} = DateTime::Format::Strptime->new(
@@ -77,9 +78,11 @@ sub new_from_json {
     } else {
         $self->{data} = $data;
         $self->validate();
+        $self->validate_items();
         if ($self->valid()) {
             $self->load();
             $self->validate();
+            $self->validate_items();
         }
     }
 
@@ -194,8 +197,6 @@ sub validate {
     $self->{continue_url} = $self->data('ContinueOrderingReturnURL');
 
     $self->load_order_id;
-
-    $self->validate_items;
 
     return $self->valid;
 }
@@ -429,7 +430,19 @@ sub load_records {
     while (my $row = $sth->fetchrow_hashref) {
         my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_hash($self->{plugin}, $self->{lang}, $self, $row);
         push @{$self->{records}}, $record;
+
     }
+}
+
+sub imported {
+    my $self = shift;
+
+    for my $record (@{$self->{records}}) {
+        if (defined $record->{ordernumber}) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 sub process {
@@ -437,7 +450,7 @@ sub process {
 
     my $dbh   = C4::Context->dbh;
 
-    if ($self->{imported}) {
+    if ($self->imported) {
         $self->_err("Already imported.");
         return 0;
     }
@@ -462,11 +475,15 @@ sub process {
                 booksellerid => $booksellerid,
                 basketno => $self->{basketno},
                 budget_id => $self->{budget_id},
+                currency => $record->{currency},
                 quantity => $record->{quantity},
                 unitprice_tax_excluded => $record->{price},
                 unitprice_tax_included => $record->{price_inc_vat},
                 rrp_tax_included => $record->{rrp_price},
-                tax_rate_bak => $record->{vat}
+                tax_rate_bak => $record->{vat},
+                order_internalnote => $record->{note},
+                order_vendornote => $self->{order_note},
+                purchaseordernumber => $self->{order_number}
             };
 
             my $order = Koha::Acquisition::Order->new($orderinfo)->store();
@@ -479,7 +496,6 @@ sub process {
         }
     }
 
-    $self->{imported} = 1;
     $self->store;
 
     $dbh->commit;
@@ -559,11 +575,15 @@ sub format_datetime {
 sub _err {
     my ($self, $msg) = @_;
 
+    warn "ERROR: $msg";
+
     push @{$self->{errors}}, $msg;
 }
 
 sub _warn {
     my ($self, $msg) = @_;
+
+    warn "WARNING: $msg";
 
     push @{$self->{warnings}}, $msg;
 }

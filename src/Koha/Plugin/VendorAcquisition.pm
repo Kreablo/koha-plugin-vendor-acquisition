@@ -26,9 +26,8 @@ use parent qw(Koha::Plugins::Base);
 use Koha::Plugin::VendorAcquisition::Order;
 use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
-use Data::Dumper;
 
-our $VERSION = "1.0";
+our $VERSION = "1.1";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -112,7 +111,7 @@ EOF
     biblioid_standard VARCHAR(32),
     note LONGTEXT,
     record LONGTEXT,
-    currency VARCHAR (8),
+    currency_code VARCHAR (8),
     price DOUBLE,
     price_inc_vat DOUBLE,
     price_rrp DOUBLE,
@@ -552,11 +551,13 @@ sub vendor_order_receive {
         my $order = {};
 
         my $save = 0;
+        my $already_processed = 0;
 
         if ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token) {
             if ($cgi->param('save') eq 'save') {
                 $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
                 $order->update_from_cgi($cgi);
+
                 if ($order->valid) {
                     $order->store;
                 }
@@ -567,14 +568,18 @@ sub vendor_order_receive {
                 if ($order->valid) {
                     $order->store;
                 }
-                $order->process;
-                if ($order->valid) {
-                    $order->store;
+                $already_processed = $order->imported;
+                if (!$already_processed) {
+                    $order->process;
+                    if ($order->valid) {
+                        $order->store;
+                    }
                 }
                 $save = 1;
             } else {
                 my $json = $cgi->param('order');
                 $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+
                 if ($order->valid) {
                     $order->store;
                     $order->load;
@@ -617,6 +622,7 @@ sub vendor_order_receive {
                     LANG        => C4::Languages::getlanguage($self->{'cgi'}),
                     order       => $order,
                     save        => $save,
+                    already_processed => $already_processed,
                     can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
                     token       => $self->retrieve_data('token')
                     );
