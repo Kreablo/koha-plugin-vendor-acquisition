@@ -41,6 +41,7 @@ sub new {
     $self->{lang} = $lang;
     $self->{records} = [];
     $self->{is_new} = 0;
+    $self->{record_ids} = {};
 
     return $self;
 }
@@ -84,6 +85,8 @@ sub new_from_json {
             $self->validate_items();
         }
     }
+
+    $self->record_duplicates;
 
     return $self;
 }
@@ -130,10 +133,11 @@ sub update_from_cgi {
         $self->{budget_id} = undef;
     }
 
-
     for my $record (@{$self->{records}}) {
         $record->update_from_cgi($cgi);
     }
+
+    $self->record_duplicates;
 }
 
 sub new_from_orderid {
@@ -144,6 +148,8 @@ sub new_from_orderid {
     $self->{order_id} = $orderid;
 
     $self->load;
+
+    $self->record_duplicates;
 
     return $self;
 }
@@ -220,6 +226,25 @@ sub validate_item {
     my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
 
     push @{$self->{records}}, $record;
+}
+
+sub record_duplicates {
+    my $self = shift;
+
+    my %records = ();
+
+    for my $record (@{$self->{records}}) {
+        my $id = $record->record_name;
+
+        next unless defined $id;
+
+        if (defined $records{$id}) {
+            $record->set_duplicate($records{$id});
+        } else {
+            $records{$id} = $record;
+        }
+    }
+
 }
 
 sub table_naming {
@@ -428,8 +453,8 @@ sub load_records {
 
     while (my $row = $sth->fetchrow_hashref) {
         my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_hash($self->{plugin}, $self->{lang}, $self, $row);
-        push @{$self->{records}}, $record;
 
+        push @{$self->{records}}, $record;
     }
 }
 
@@ -557,7 +582,6 @@ sub parse_datetime {
 
     if ($@) {
         $self->_err("Failed to parse datetime of field '$fieldname': " . $@);
-        warn "Failed to parse datetime of field '$fieldname': " . $@;
     }
 
     return $datetime;

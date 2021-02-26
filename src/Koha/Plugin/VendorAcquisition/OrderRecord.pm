@@ -33,6 +33,7 @@ sub new {
     $self->{lang} = $lang;
     $self->{order} = $order;
     $self->{items} = [];
+    $self->{duplicate} = undef;
 
     return $self;
 }
@@ -169,6 +170,16 @@ sub fields {
 sub load_record_id {
     my $self = shift;
 
+
+    my $name = $self->record_name;
+    if (defined $name) {
+        my $ids = $self->{order}->{record_ids}->{$name};
+        if (defined $ids && @$ids) {
+            $self->{record_id} = shift @$ids;
+            return;
+        }
+    }
+
     my $dbh   = C4::Context->dbh;
 
     my $recordtable = $self->table_naming('record');
@@ -184,10 +195,16 @@ sub load_record_id {
         return;
     }
 
-    my $row = $sth->fetchrow_hashref;
-    if ($row) {
-        $self->{record_id} = $row->{record_id};
+    my $ids = [];
+    while (my $row = $sth->fetchrow_hashref) {
+        push @$ids, $row->{record_id};
     }
+
+    if (@$ids) {
+        $self->{record_id} = shift @$ids;
+    }
+
+    $self->{order}->{record_ids}->{$name} = $ids;
 }
 
 sub store {
@@ -199,8 +216,6 @@ sub store {
 
     my $sql;
     my @binds = ();
-
-    warn "store record with ordernumber: " . $self->{ordernumber};
 
     if (defined $self->{record_id}) {
         $sql = "UPDATE `$recordtable` ";
@@ -234,7 +249,18 @@ SET order_id = ?,
     merge_biblionumber = ?
 EOF
 
-    my $record_xml = defined $self->{record} ? $self->{record}->as_xml_record : undef;
+
+    my $r;
+
+    if (defined $self->{duplicate}) {
+        $r = $self->{duplicate}->{record};
+        $self->{biblionumber} = $self->{duplicate}->{biblionumber};
+        $self->{merge_biblionumber} = $self->{duplicate}->{merge_biblionumber};
+    } else {
+        $r = $self->{record};
+    }
+
+    my $record_xml = defined $r ? $r->as_xml_record : undef;
 
         @binds = (
             $self->{order}->{order_id},
@@ -397,7 +423,9 @@ sub validate_item_data {
     $self->prepare_record;
     $self->prepare_currency;
 
-    $self->load_record_id;
+    if (!defined $self->{record_id}) {
+        $self->load_record_id;
+    }
 
     if (defined $self->{record_id}) {
         $self->load_items;
@@ -557,6 +585,28 @@ sub process {
     }
 
     return 1;
+}
+
+sub record_name {
+    my $self = shift;
+
+    my $id;
+    
+    if (defined $self->{biblioid_standard} && defined $self->{biblioid}) {
+        $id = 'st|' . $self->{biblioid_standard} . '|' . $self->{biblioid};
+    } elsif (defined $self->{isbn}) {
+        $id = 'isbn|'  . $self->{isbn};
+    }
+
+
+    return $id;
+}
+
+sub set_duplicate {
+    my $self = shift;
+    my $record = shift;
+
+    $self->{duplicate} = $record;
 }
 
 
