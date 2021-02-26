@@ -27,6 +27,8 @@ use Koha::Acquisition::Order;
 use Koha::Acquisition::Basket;
 use Koha::Acquisition::Baskets;
 use MIME::Base64;
+use Encode;
+
 
 sub new {
     my ( $class, $plugin, $lang, $json_text ) = @_;
@@ -40,7 +42,6 @@ sub new {
     $self->{records} = [];
     $self->{is_new} = 0;
 
-
     return $self;
 }
 
@@ -51,8 +52,6 @@ sub new_from_json {
     my $data;
 
     my $self = __PACKAGE__->new( $plugin, $lang );
-
-    warn "new_from_json";
 
     $self->{json} = $json_text;
     $self->{date_format} = DateTime::Format::Strptime->new(
@@ -68,8 +67,8 @@ sub new_from_json {
 
     if ($@) {
         eval {
-            $decoded = decode_base64($json_text);
-            $data = $json->utf8->decode($decoded);
+            $decoded = Encode::decode('UTF-8', decode_base64($json_text));
+            $data = $json->decode($decoded);
         };
     }
 
