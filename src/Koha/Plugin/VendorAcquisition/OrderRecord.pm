@@ -21,6 +21,7 @@ use C4::Matcher;
 use C4::Biblio qw( GetMarcBiblio AddBiblio GetBiblioData );
 use Koha::Plugin::VendorAcquisition::OrderItem;
 use MARC::File::XML;
+use Koha::Acquisition::Currencies;
 
 sub new {
     my ( $class, $plugin, $lang, $order ) = @_;
@@ -145,6 +146,8 @@ sub update_from_json {
         $self->{items}->[$i]->delete;
     }
     splice @{$self->{items}}, $self->{quantity};
+
+    $self->set_barcode;
 }
 
 sub update_from_cgi {
@@ -430,12 +433,25 @@ sub validate_item_data {
     if (defined $self->{record_id}) {
         $self->load_items;
     }
+
+}
+
+sub set_barcode {
+    my $self = shift;
+
+    if (defined $self->{barcode} && $self->{barcode} ne '' && @{$self->{items}}) {
+        # For now we have at most one barcode.
+        $self->{items}->[0]->{barcode} = $self->{barcode};
+    }
 }
 
 sub prepare_currency {
+    my $self = shift;
+
     if (defined $self->{currency_code}) {
 
-        my $currency = Koha::Acquisition::Currency->find({ isocode => $self->{currency_code}});
+        my $currency = Koha::Acquisition::Currencies->find({ isocode => $self->{currency_code}});
+
         if (defined $currency) {
             $self->{currency} = $currency->currency;
         } else {

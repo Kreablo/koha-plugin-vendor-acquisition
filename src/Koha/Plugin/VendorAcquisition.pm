@@ -27,7 +27,7 @@ use Koha::Plugin::VendorAcquisition::Order;
 use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 
-our $VERSION = "1.1";
+our $VERSION = "1.2";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -53,6 +53,24 @@ sub new {
     $self->{'class'} = $class;
 
     return $self;
+}
+
+sub version_cmp {
+    my ($av, $bv) = @_;
+
+    my @a = split /\./, $av;
+    my @b = split /\./, $bv;
+
+    for (my $i = 0; $i < scalar(@a) && $i < scalar(@b); $i++) {
+        if ($a[$i] < $b[$i]) {
+            return -1;
+        }
+        if ($a[$i] > $b[$i]) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 sub install {
@@ -156,11 +174,13 @@ EOF
     notforloan TINYINT(1) NOT NULL DEFAULT '0',
     price DECIMAL(8, 2) DEFAULT NULL,
     itemnumber INT DEFAULT NULL,
+    barcode varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
     INDEX (record_id),
     INDEX (homebranch),
     INDEX (holdingbranch),
     INDEX (itemnumber),
     INDEX (itemtype),
+    INDEX (barcode),
     FOREIGN KEY (record_id) REFERENCES `$recordtable` (record_id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (homebranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (holdingbranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -273,6 +293,15 @@ sub upgrade {
     my ( $self, $args ) = @_;
 
     my $success = 1;
+
+    my $dbh = C4::Context->dbh;
+    my $itemtable = $self->get_qualified_table_name('item');
+
+    my $database_version = $self->retrieve_data('__INSTALLED_VERSION__');
+
+    if (version_cmp($database_version, '1.2') < 0) {
+        $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD COLUMN barcode varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER itemnumber");
+    }
 
     return $success;
 }

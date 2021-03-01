@@ -131,6 +131,7 @@ SET record_id = ?,
     itemtype = ?,
     ccode = ?,
     itemnumber = ?,
+    barcode = ?,
     itemcallnumber = ?,
     price = ?
 EOF
@@ -143,6 +144,7 @@ EOF
         $self->{itemtype},
         $self->{ccode},
         $self->{itemnumber},
+        $self->{barcode},
         $self->{itemcallnumber},
         $self->{price}
         );
@@ -195,6 +197,17 @@ sub process {
     my $self = shift;
     my $biblioitemnumber = shift;
 
+    my $barcode = $self->{barcode};
+
+    if (defined $barcode) {
+	my @items = Koha::Items->find({
+	    barcode => $barcode
+        });
+	if (@items) {
+	    $barcode = undef;
+	}
+    }
+
     my $item = Koha::Item->new({
         biblionumber => $self->{record}->{biblionumber},
         biblioitemnumber => $biblioitemnumber,
@@ -204,6 +217,7 @@ sub process {
         location => $self->{location},
         itype => $self->{itemtype},
         ccode => $self->{ccode},
+        barcode => $barcode,
         itemcallnumber => $self->{record}->{callnumber},
         price => $self->{record}->{price}
                                })->store;
@@ -219,7 +233,7 @@ sub process {
 }
 
 sub fields {
-    return qw(item_id record_id notforloan homebranch holdingbranch location itemtype ccode itemnumber);
+    return qw(item_id record_id notforloan homebranch holdingbranch location itemtype ccode itemnumber barcode);
 }
 
 sub _err {
