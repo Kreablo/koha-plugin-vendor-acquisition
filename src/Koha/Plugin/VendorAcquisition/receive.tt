@@ -37,7 +37,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
   </div>
 </div>
   [% ELSE %]
-<div class="row">
+<div class="row save-buttons">
   <div class="col-xs-12">
     <button type="submit" name="save" value="save" class="btn-primary" ><span class="fa fa-save" /> [% MSG.just_save | html %]</button>
     <button type="submit" name="save" value="process" class="btn-primary" ><span class="fa fa-arrow-right" /> [% MSG.save_and_process | html %]</button>
@@ -88,6 +88,10 @@ main h3 {
 main h4, main h5, main h6 {
    margin-top: 7px;
    margin-bottom: 7px;
+}
+.save-buttons {
+   top: 5px;
+   position: sticky;
 }
 </style>
 [% INCLUDE 'doc-head-close.inc' %]
@@ -319,7 +323,6 @@ main h4, main h5, main h6 {
                 </li>
                 [% END %]
               </ul>
-              [% PROCESS save_buttons %]
             </div>
           </div>
         </form>

@@ -39,7 +39,7 @@ $stash->set('dump' => sub { return Dumper($_[0]) });
 $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK select %]
-<select name="[% name %]"[% IF defined(id) %] id="[% id %]"[% END %][% IF defined(class) %] class="[% class %]"[% END %]>
+<select name="[% name %]"[% IF defined(id) %] id="[% id %]"[% END %][% IF defined(class) %] class="[% class %]"[% END %][% IF required %]required[% END %]>
   [% IF emptyval %]
   <option value="" [% IF empty(value) %]selected="selected"[% END %]>[% IF defined(emptylabel) %][% emptylabel | html %][% ELSE %][% emptyval | html %][% END %]</option>
   [% END %]
@@ -129,7 +129,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                       [% SET id_ = "default-itemtype-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_itemtype | html %]</label>
                     </th>
-                    <td>[% PROCESS select list=itemtypes name="default-itemtype" id=id_ value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" %]</td>
+                    <td>[% PROCESS select list=itemtypes name="default-itemtype" id=id_ value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required="1" %]</td>
                   </tr>
                   <tr>
                     <th>
