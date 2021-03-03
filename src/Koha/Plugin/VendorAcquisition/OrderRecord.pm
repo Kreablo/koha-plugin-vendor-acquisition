@@ -457,6 +457,14 @@ sub prepare_currency {
         } else {
             $self->_warn("The currency '" . $self->{currency_code} . "' is not defined!");
         }
+    } else {
+        my $currency = Koha::Acquisition::Currencies->find({ active => 1 });
+        
+        if (defined $currency) {
+            $self->{currency} = $currency->currency;
+        } else {
+            $self->_warn("There is no active currency!");
+        }
     }
 
 }
