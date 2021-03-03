@@ -29,7 +29,6 @@ use Koha::Acquisition::Baskets;
 use MIME::Base64;
 use Encode;
 
-
 sub new {
     my ( $class, $plugin, $lang, $json_text ) = @_;
 
@@ -107,11 +106,17 @@ sub update_from_cgi {
             $basket = $baskets[0];
             $basketno = $basket->basketno;
         } else {
-            $basket = Koha::Acquisition::Basket->new({
+	    my $date = DateTime->now;
+
+            my $basketinfo = {
                 basketname => $basketname,
                 booksellerid => $self->{booksellerid},
-                create_items => 'ordering'
-            })->store;
+                create_items => 'ordering',
+		creationdate => $date,
+		authorisedby => C4::Context->userenv->{'id'}
+            };
+
+            $basket = Koha::Acquisition::Basket->new($basketinfo)->store;
             $basketno = $basket->basketno;
         }
     } else {
@@ -499,6 +504,7 @@ sub process {
                 booksellerid => $booksellerid,
                 basketno => $self->{basketno},
                 budget_id => $self->{budget_id},
+		created_by => C4::Context->userenv->{'id'},
                 currency => $record->{currency},
                 quantity => $record->{quantity},
                 unitprice_tax_excluded => $record->{price},
