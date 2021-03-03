@@ -75,14 +75,16 @@ sub new_from_json {
     if ($@) {
         $self->_err('Could not parse JSON data: ' . $@);
     } else {
-        $self->{data} = $data;
-        $self->validate();
-        $self->validate_items();
-        if ($self->valid()) {
-            $self->load();
-            $self->validate();
-            $self->validate_items();
-        }
+       $self->{data} = $data;
+ 
+
+       $self->validate();
+       $self->validate_items();
+       if ($self->valid()) {
+           $self->load();
+           $self->validate();
+           $self->validate_items();
+       }
     }
 
     $self->record_duplicates;
@@ -521,11 +523,11 @@ sub process {
                 purchaseordernumber => $self->{order_number}
             };
 
-            my $order = Koha::Acquisition::Order->new($orderinfo)->store();
+            my $order = Koha::Acquisition::Order->new($orderinfo)->store;
+
             $record->{ordernumber} = $order->ordernumber;
-        }
-        for my $record (@{$self->{records}}) {
-            for my $item (@{$self->{items}}) {
+
+            for my $item (@{$record->{items}}) {
                 $order->add_item( $item->{itemnumber} );
             }
         }

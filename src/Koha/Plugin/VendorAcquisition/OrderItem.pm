@@ -227,7 +227,7 @@ sub process {
         return 0;
     }
 
-    $self->{itemnumber} = $item->{itemnumber};
+    $self->{itemnumber} = $item->itemnumber;
 
     return 1;
 }
