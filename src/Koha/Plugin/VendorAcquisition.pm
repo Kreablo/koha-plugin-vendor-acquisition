@@ -28,7 +28,7 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.3";
+our $VERSION = "1.4";
 our $API_VERSION = "1.0";
 
 our $metadata = {
