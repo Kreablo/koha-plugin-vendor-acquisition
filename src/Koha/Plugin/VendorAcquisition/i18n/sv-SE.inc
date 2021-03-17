@@ -27,6 +27,7 @@
    do_not_use_existing = "Skapa en ny post",
    duplicates = "Lägg till beståndspost(er) på befintlig post:",
    errors = "Felmeddelanden",
+   estimated_delivery_date = "Uppskattat leveransdatum",
    goto_basket = "Gå till korg",
    home = "Tillbaka",
    homebranch = "Hembibliotek",

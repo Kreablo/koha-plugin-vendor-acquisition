@@ -15,6 +15,7 @@
 
 package Koha::Plugin::VendorAcquisition::OrderItem;
 
+use strict;
 use Koha::Item;
 use C4::Context;
 

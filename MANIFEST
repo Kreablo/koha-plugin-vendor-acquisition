@@ -7,6 +7,7 @@ src/Koha/Plugin/VendorAcquisition/i18n/default.inc
 src/Koha/Plugin/VendorAcquisition/i18n/sv-SE.inc
 src/Koha/Plugin/VendorAcquisition/Order.pm
 src/Koha/Plugin/VendorAcquisition/order_failed.tt
+src/Koha/Plugin/VendorAcquisition/order_internalnote.tt
 src/Koha/Plugin/VendorAcquisition/OrderItem.pm
 src/Koha/Plugin/VendorAcquisition/OrderRecord.pm
 src/Koha/Plugin/VendorAcquisition/receive-test.tt

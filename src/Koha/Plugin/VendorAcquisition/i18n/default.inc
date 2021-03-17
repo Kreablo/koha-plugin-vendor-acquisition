@@ -27,6 +27,7 @@
    do_not_use_existing = "Create new record",
    duplicates = "Add item to existing record:",
    errors = "Errors",
+   estimated_delivery_date = "Estimated delivery date",
    goto_basket = "Go to basket",
    home = "Home",
    homebranch = "Home branch",

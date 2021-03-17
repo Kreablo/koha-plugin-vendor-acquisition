@@ -30,7 +30,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 </select>
 [% END %]
 [% BLOCK save_buttons %]
-  [% IF order.imported %]
+  [% IF order.imported() %]
 <div class="row">
   <div class="col-xs-12 text-warning">
     [% MSG.order_already_processed %]

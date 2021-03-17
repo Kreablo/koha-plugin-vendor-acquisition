@@ -27,7 +27,7 @@ use Koha::Plugin::VendorAcquisition::Order;
 use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 
-our $VERSION = "1.2";
+our $VERSION = "1.3";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -363,7 +363,6 @@ sub configure {
     my $dbh   = C4::Context->dbh;
 
     if ( $cgi->request_method eq 'POST' && $cgi->param('save') && $cgi->param('token') eq $token) {
-        $dbh->begin_work;
 
         my @vendor_mapping_ids = $cgi->multi_param('vendor-id');
         my @vendor_mapping_koha_ids = $cgi->multi_param('koha-vendor-id');
@@ -494,7 +493,6 @@ sub configure {
             record_match_rule => $record_match_rule,
         });
 
-        $dbh->commit;
         $save_success = 1;
     }
 
@@ -599,7 +597,7 @@ sub vendor_order_receive {
                 }
                 $already_processed = $order->imported;
                 if (!$already_processed) {
-                    $order->process;
+                    $order->process($lang, $self);
                     if ($order->valid) {
                         $order->store;
                     }
@@ -655,7 +653,6 @@ sub vendor_order_receive {
                     can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
                     token       => $self->retrieve_data('token')
                     );
-
 
                 $self->output_html( $template->output() );
             }

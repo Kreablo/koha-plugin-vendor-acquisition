@@ -15,6 +15,7 @@
 
 package Koha::Plugin::VendorAcquisition::OrderRecord;
 
+use strict;
 use C4::XSLT;
 use Data::Dumper;
 use C4::Matcher;
@@ -22,6 +23,7 @@ use C4::Biblio qw( GetMarcBiblio AddBiblio GetBiblioData );
 use Koha::Plugin::VendorAcquisition::OrderItem;
 use MARC::File::XML;
 use Koha::Acquisition::Currencies;
+use Koha::DateUtils qw( dt_from_string );
 
 sub new {
     my ( $class, $plugin, $lang, $order ) = @_;
@@ -57,6 +59,7 @@ sub new_from_hash {
     for my $field (fields()) {
         $self->{$field} = $data->{$field};
     }
+    $self->{estimated_delivery_date} = dt_from_string($self->{estiamted_delivery_date}, 'sql');
 
     my $record;
     eval {
@@ -187,7 +190,7 @@ sub load_record_id {
 
     my $recordtable = $self->table_naming('record');
 
-    my $sql = "SELECT record_id FROM `$recordtable` WHERE order_id = ? AND biblioid = ? AND biblioid_standard = ?";
+    my $sql = "SELECT record_id, ordernumber FROM `$recordtable` WHERE order_id = ? AND biblioid = ? AND biblioid_standard = ?";
 
     my $sth = $dbh->prepare($sql);
 
@@ -200,11 +203,13 @@ sub load_record_id {
 
     my $ids = [];
     while (my $row = $sth->fetchrow_hashref) {
-        push @$ids, $row->{record_id};
+        push @$ids, { record_id => $row->{record_id}, ordernumber => $row->{ordernumber} };
     }
 
     if (@$ids) {
-        $self->{record_id} = shift @$ids;
+        my $i = shift @$ids;
+        $self->{record_id} = $i->{record_id};
+        $self->{biblionumber} = $i->{biblionumber};
     }
 
     $self->{order}->{record_ids}->{$name} = $ids;
@@ -391,6 +396,7 @@ sub validate_item_data {
     $self->{biblioid} = $self->data('ItemID');
     $self->{biblioid_standard} = $self->data('ItemIDStandard');
     $self->{biblionumber} = undef;
+    $self->{estimated_delivery_date} = $self->{order}->parse_datetime($self->data('ItemEstimatedDeliveryDate'));
 
     if (defined $format && $format != '') {
         if ($format eq 'marc21') {
@@ -498,7 +504,7 @@ sub build_record {
     }
     if (defined $self->{year}) {
         if (defined $publisherfield) {
-            $titlefield->add_subfields('c' => $self->{year});
+            $publisherfield->add_subfields('c' => $self->{year});
         } else {
             $publisherfield = MARC::Field->new('260', ' ', ' ', 'c' => $self->{year});
             $record->add_fields($publisherfield);

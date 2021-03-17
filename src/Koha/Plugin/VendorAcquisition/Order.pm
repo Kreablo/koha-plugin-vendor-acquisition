@@ -15,6 +15,7 @@
 
 package Koha::Plugin::VendorAcquisition::Order;
 
+use strict;
 use JSON;
 use DateTime;
 use DateTime::Format::Strptime;
@@ -67,7 +68,7 @@ sub new_from_json {
 
     if ($@) {
         eval {
-            $decoded = Encode::decode('UTF-8', decode_base64($json_text));
+            my $decoded = Encode::decode('UTF-8', decode_base64($json_text));
             $data = $json->decode($decoded);
         };
     }
@@ -105,7 +106,7 @@ sub update_from_cgi {
         my $basketname = $basketType eq 'new-order' ? $self->{order_number} : $cgi->param('order-basketname');
         my @baskets = Koha::Acquisition::Baskets->search({ basketname => $basketname });
         if ( scalar(@baskets) > 0) {
-            $basket = $baskets[0];
+            my $basket = $baskets[0];
             $basketno = $basket->basketno;
         } else {
 	    my $date = DateTime->now;
@@ -115,10 +116,11 @@ sub update_from_cgi {
                 booksellerid => $self->{booksellerid},
                 create_items => 'ordering',
 		creationdate => $date,
-		authorisedby => C4::Context->userenv->{'id'}
+		authorisedby => C4::Context->userenv->{'number'},
+                billingplace => C4::Context->userenv->{'branch'}
             };
 
-            $basket = Koha::Acquisition::Basket->new($basketinfo)->store;
+            my $basket = Koha::Acquisition::Basket->new($basketinfo)->store;
             $basketno = $basket->basketno;
         }
     } else {
@@ -318,6 +320,8 @@ sub store {
 
     my $ordertable = $self->table_naming('order');
 
+    my $sql;
+
     if (defined $self->{order_id}) {
         $sql = "UPDATE `$ordertable` ";
     } else {
@@ -355,9 +359,9 @@ EOF
         push @binds, $self->{order_id};
     }
 
-    $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare($sql);
 
-    $rv = $sth->execute(@binds);
+    my $rv = $sth->execute(@binds);
 
     if (!$rv) {
         $self->_err("Failed to store order data: " . $dbh->errstr);
@@ -478,8 +482,14 @@ sub imported {
 
 sub process {
     my $self = shift;
+    my $lang = shift;
+    my $plugin = shift;
+
+    my $plugin_dir = $plugin->bundle_path;
 
     my $dbh   = C4::Context->dbh;
+
+    my @lang_split = split /_|-/, $lang;
 
     if ($self->imported) {
         $self->_err("Already imported.");
@@ -489,6 +499,7 @@ sub process {
     $dbh->begin_work;
 
     my $booksellerid = $self->booksellerid;
+
 
     if (!defined $booksellerid) {
         goto FAIL;
@@ -501,12 +512,22 @@ sub process {
         if ($record->{ordernumber}) {
             next;
         } else {
+            my $internalnote_template = $plugin->get_template( { file => 'order_internalnote.tt' } );
+            $internalnote_template->param(
+                lang_dialect => $lang,
+                lang_all => $lang_split[0],
+                plugin_dir => $plugin_dir,
+                estimated_delivery_date => output_pref({ dt => $record->{estimated_delivery_date},
+                                                         dateonly => 1}),
+                note => $record->{note}
+                );
+
             my $orderinfo = {
                 biblionumber => $record->{biblionumber},
                 booksellerid => $booksellerid,
                 basketno => $self->{basketno},
                 budget_id => $self->{budget_id},
-		created_by => C4::Context->userenv->{'id'},
+		created_by => C4::Context->userenv->{'number'},
                 currency => $record->{currency},
                 quantity => $record->{quantity},
                 replacementprice => $record->{price_inc_vat},
@@ -518,7 +539,7 @@ sub process {
                 unitprice_tax_included => $record->{price_inc_vat},
                 rrp_tax_included => $record->{rrp_price},
                 tax_rate_bak => $record->{vat},
-                order_internalnote => $record->{note},
+                order_internalnote => $internalnote_template->output,
                 order_vendornote => $self->{order_note},
                 purchaseordernumber => $self->{order_number}
             };
