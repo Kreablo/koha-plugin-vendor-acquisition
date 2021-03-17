@@ -316,8 +316,6 @@ sub store {
 
     my $dbh   = C4::Context->dbh;
 
-    $dbh->begin_work;
-
     my $ordertable = $self->table_naming('order');
 
     my $sql;
@@ -373,6 +371,7 @@ EOF
     }
 
 
+
     for my $record (@{$self->{records}}) {
         if (!$record->store) {
             goto FAIL;
@@ -380,8 +379,6 @@ EOF
     }
 
     $self->delete_records;
-
-    $dbh->commit;
 
     return 1;
 
@@ -437,6 +434,7 @@ sub load {
         if (defined $self->{when_ordered}) {
             $self->{when_ordered_str} = output_pref($self->{when_ordered});
         }
+        $self->record_duplicates;
     } else {
         $self->{is_new} = 1;
     }
@@ -496,10 +494,7 @@ sub process {
         return 0;
     }
 
-    $dbh->begin_work;
-
     my $booksellerid = $self->booksellerid;
-
 
     if (!defined $booksellerid) {
         goto FAIL;
@@ -555,8 +550,6 @@ sub process {
     }
 
     $self->store;
-
-    $dbh->commit;
 
     return 1;
 

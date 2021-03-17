@@ -26,6 +26,7 @@ use parent qw(Koha::Plugins::Base);
 use Koha::Plugin::VendorAcquisition::Order;
 use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
+use Koha::Database;
 
 our $VERSION = "1.3";
 our $API_VERSION = "1.0";
@@ -581,37 +582,39 @@ sub vendor_order_receive {
         my $already_processed = 0;
 
         if ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token) {
-            if ($cgi->param('save') eq 'save') {
-                $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                $order->update_from_cgi($cgi);
+            my $schema = Koha::Database->schema;
 
-                if ($order->valid) {
-                    $order->store;
-                }
-                $save = 1;
-            } elsif ($cgi->param('save') eq 'process') {
-                $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                $order->update_from_cgi($cgi);
-                if ($order->valid) {
-                    $order->store;
-                }
-                $already_processed = $order->imported;
-                if (!$already_processed) {
-                    $order->process($lang, $self);
+            $schema->txn_do(sub {
+                if ($cgi->param('save') eq 'save') {
+                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
+                    $order->update_from_cgi($cgi);
                     if ($order->valid) {
                         $order->store;
                     }
+                    $save = 1;
+                } elsif ($cgi->param('save') eq 'process') {
+                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
+                    $order->update_from_cgi($cgi);
+                    if ($order->valid) {
+                        $order->store;
+                    }
+                    $already_processed = $order->imported;
+                    if (!$already_processed) {
+                        $order->process($lang, $self);
+                        if ($order->valid) {
+                            $order->store;
+                        }
+                    }
+                    $save = 1;
+                } else {
+                    my $json = $cgi->param('order');
+                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                    if ($order->valid) {
+                        $order->store;
+                        $order->load;
+                    }
                 }
-                $save = 1;
-            } else {
-                my $json = $cgi->param('order');
-                $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
-
-                if ($order->valid) {
-                    $order->store;
-                    $order->load;
-                }
-            }
+            });
 
         } else {
             $order->{errors} = ('Invalid security token.');

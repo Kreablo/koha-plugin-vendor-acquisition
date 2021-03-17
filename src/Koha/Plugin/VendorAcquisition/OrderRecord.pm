@@ -37,6 +37,7 @@ sub new {
     $self->{order} = $order;
     $self->{items} = [];
     $self->{duplicate} = undef;
+    $self->{duplicates} = [];
 
     return $self;
 }
@@ -181,7 +182,7 @@ sub load_record_id {
     if (defined $name) {
         my $ids = $self->{order}->{record_ids}->{$name};
         if (defined $ids && @$ids) {
-            $self->{record_id} = shift @$ids;
+            $self->{record_id} = (shift @$ids)->{record_id};
             return;
         }
     }

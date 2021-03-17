@@ -288,7 +288,7 @@ main h4, main h5, main h6 {
                         [% END %]
                       </div>
                       [%# record.duplicates is the list of duplicated records found in the catalogue, while record.duplicate is set if this is a duplicate of another record within this acquisition order. %]
-                      [% IF record.duplicates && !record.duplicate %]
+                      [% IF !(record.duplicates.size() == 0 || record.duplicate) %]
                       <div class="col-xs-12 col-md-6 col-lg-4">
                         <h5>[% MSG.records | html %]</h5>
                         [% SET name_ = "duplicate-biblionumber-" _ record.record_id %]
