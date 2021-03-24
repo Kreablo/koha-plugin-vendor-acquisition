@@ -28,7 +28,7 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.4";
+our $VERSION = "1.5";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -228,6 +228,15 @@ EOF
 )
 EOF
 
+    my $order_json_table = $self->get_qualified_table_name('order_json');
+    $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<'EOF');
+(
+   order_id INT PRIMARY KEY NOT NULL,
+   json LONGTEXT,
+   FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
+)
+EOF
+
     unless ($self->retrieve_data('token')) {
         use Bytes::Random::Secure qw(random_bytes_base64);
 
@@ -302,6 +311,18 @@ sub upgrade {
 
     if (version_cmp($database_version, '1.2') < 0) {
         $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD COLUMN barcode varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER itemnumber");
+    }
+
+    if (version_cmp($database_version, '1.4') < 0) {
+        my $order_json_table = $self->get_qualified_table_name('order_json');
+        my $ordertable = $self->get_qualified_table_name('order');
+        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<'EOF');
+(
+   order_id INT PRIMARY KEY NOT NULL,
+   json LONGTEXT,
+   FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
+)
+EOF
     }
 
     return $success;

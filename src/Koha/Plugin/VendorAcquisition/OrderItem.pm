@@ -150,8 +150,6 @@ EOF
         $self->{price}
         );
 
-    warn "item store record_id "  . $self->{record}->{record_id};
-
     if (defined $self->{item_id}) {
         $sql .= ' WHERE item_id = ?';
         push @binds, $self->{item_id};

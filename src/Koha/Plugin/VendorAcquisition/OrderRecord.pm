@@ -399,7 +399,7 @@ sub validate_item_data {
     $self->{biblionumber} = undef;
     $self->{estimated_delivery_date} = $self->{order}->parse_datetime($self->data('ItemEstimatedDeliveryDate'));
 
-    if (defined $format && $format != '') {
+    if (defined $format && $format ne '') {
         if ($format eq 'marc21') {
             eval {
                 $record = MARC::Record::new_from_usmarc($item_data->{MARCRecord});

@@ -368,8 +368,10 @@ EOF
 
     if (!defined $self->{order_id}) {
         $self->{order_id} = $dbh->last_insert_id(undef, undef, $ordertable, undef);
+        my $order_json_table = $self->table_naming('order_json');
+        my $sth_json = $dbh->prepare('INSERT IGNORE INTO `$order_json_table` (order_id, json) VALUES (?, ?)');
+        $sth_json->execute($self->{order_id}, $self->{json});
     }
-
 
 
     for my $record (@{$self->{records}}) {
@@ -602,6 +604,8 @@ sub parse_datetime {
     my ($self, $text, $fieldname) = @_;
 
     my $datetime;
+
+    return undef if !defined $text || $text =~ /^\s*$/;
 
     eval {
         $datetime = $self->{date_format}->parse_datetime($text);
