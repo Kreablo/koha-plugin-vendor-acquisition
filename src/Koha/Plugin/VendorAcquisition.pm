@@ -313,16 +313,17 @@ sub upgrade {
         $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD COLUMN barcode varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER itemnumber");
     }
 
-    if (version_cmp($database_version, '1.4') < 0) {
+    if (version_cmp($database_version, '1.5') < 0) {
         my $order_json_table = $self->get_qualified_table_name('order_json');
         my $ordertable = $self->get_qualified_table_name('order');
-        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<'EOF');
+        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<EOF);
 (
    order_id INT PRIMARY KEY NOT NULL,
    json LONGTEXT,
    FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
 )
 EOF
+
     }
 
     return $success;

@@ -24,6 +24,8 @@ use Koha::Plugin::VendorAcquisition::OrderItem;
 use MARC::File::XML;
 use Koha::Acquisition::Currencies;
 use Koha::DateUtils qw( dt_from_string );
+use Encode;
+use utf8;
 
 sub new {
     my ( $class, $plugin, $lang, $order ) = @_;
@@ -64,10 +66,7 @@ sub new_from_hash {
 
     my $record;
     eval {
-        $MARC::File::XML::_load_args{BinaryEncoding} = 'utf-8';
-        $MARC::File::XML::_load_args{RecordFormat} = 'USMARC';
-
-        $record = MARC::Record::new_from_xml($self->{record});
+        $record = MARC::Record::new_from_xml($self->{record}, 'utf-8', 'usmarc');
     };
 
     if ($@) {
@@ -402,14 +401,18 @@ sub validate_item_data {
     if (defined $format && $format ne '') {
         if ($format eq 'marc21') {
             eval {
-                $record = MARC::Record::new_from_usmarc($item_data->{MARCRecord});
+                my $decoded = $item_data->{MARCRecord};
+
+                my $encoded = Encode::encode('UTF-8', $decoded);
+                
+                $record = MARC::Record::new_from_usmarc($encoded);
+                for my $warning (@{$record->{_warnings}}) {
+                    $self->_warn($warning);
+                }
             };
         } elsif ($format eq 'marcxml') {
             eval {
-                $MARC::File::XML::_load_args{BinaryEncoding} = 'utf-8';
-                $MARC::File::XML::_load_args{RecordFormat} = 'USMARC';
-
-                $record = MARC::Record::new_from_xml($item_data->{MARCRecord});
+                $record = MARC::Record::new_from_xml($item_data->{MARCRecord}, 'utf-8', 'usmarc');
             };
         } else {
             $self->_err("Unknown marc record format: $format");
@@ -480,6 +483,8 @@ sub build_record {
     my $self = shift;
 
     my $record = MARC::Record->new();
+
+    $record->encoding('UTF-8');
 
     if (defined $self->{biblioid}) {
         $record->add_fields(MARC::Field->new('001', $self->{biblioid}));

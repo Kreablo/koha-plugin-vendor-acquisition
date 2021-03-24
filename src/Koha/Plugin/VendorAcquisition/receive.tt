@@ -90,8 +90,12 @@ main h4, main h5, main h6 {
    margin-bottom: 7px;
 }
 .save-buttons {
-   top: 5px;
+   top: 0px;
    position: sticky;
+   padding-top: 5px;
+   padding-bottom: 5px;
+   background-color: #fff;
+   z-index: 100;
 }
 </style>
 [% INCLUDE 'doc-head-close.inc' %]

@@ -29,6 +29,7 @@ use Koha::Acquisition::Basket;
 use Koha::Acquisition::Baskets;
 use MIME::Base64;
 use Encode;
+use utf8;
 
 sub new {
     my ( $class, $plugin, $lang, $json_text ) = @_;
@@ -369,8 +370,8 @@ EOF
     if (!defined $self->{order_id}) {
         $self->{order_id} = $dbh->last_insert_id(undef, undef, $ordertable, undef);
         my $order_json_table = $self->table_naming('order_json');
-        my $sth_json = $dbh->prepare('INSERT IGNORE INTO `$order_json_table` (order_id, json) VALUES (?, ?)');
-        $sth_json->execute($self->{order_id}, $self->{json});
+        my $sth_json = $dbh->prepare("INSERT IGNORE INTO `$order_json_table` (order_id, json) VALUES (?, ?)");
+        my $rv = $sth_json->execute($self->{order_id}, $self->{json});
     }
 
 
