@@ -346,7 +346,7 @@ EOF
                  $self->{api_version},
                  $self->{continue_url},
                  $self->{vendor},
-                 $self->{when_ordered},
+                 output_pref({ str => $self->{when_ordered}, dateformat => 'iso' }),
                  $self->{order_note},
                  $self->{budget_id},
                  $self->{basketno}

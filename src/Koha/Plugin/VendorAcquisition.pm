@@ -28,7 +28,7 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.5";
+our $VERSION = "1.6";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -107,7 +107,7 @@ sub install {
    INDEX (vendor),
    FOREIGN KEY (basketno) REFERENCES aqbasket (basketno) ON UPDATE CASCADE ON DELETE SET NULL,
    FOREIGN KEY (budget_id) REFERENCES aqbudgets (budget_id) ON UPDATE CASCADE ON DELETE SET NULL
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     if (!$success) {
@@ -153,7 +153,7 @@ EOF
     FOREIGN KEY (biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (merge_biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (ordernumber) REFERENCES aqorders (ordernumber) ON UPDATE CASCADE ON DELETE SET NULL
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     if (!$success) {
@@ -187,7 +187,7 @@ EOF
     FOREIGN KEY (holdingbranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (itemnumber) REFERENCES items (itemnumber) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     if (!$success) {
@@ -225,7 +225,7 @@ EOF
    FOREIGN KEY (homebranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
    FOREIGN KEY (holdingbranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
    FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     my $order_json_table = $self->get_qualified_table_name('order_json');
@@ -234,7 +234,7 @@ EOF
    order_id INT PRIMARY KEY NOT NULL,
    json LONGTEXT,
    FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     unless ($self->retrieve_data('token')) {
@@ -296,6 +296,9 @@ sub uninstall {
     my $dvtable = $self->get_qualified_table_name('default_values');
     $dbh->do("DROP TABLE IF EXISTS `$dvtable`");
 
+    my $order_json = $self->get_qualified_table_name('order_json');
+    $dbh->do("DROP TABLE IF EXISTS `$order_json`");
+
     return $success;
 }
 
@@ -321,7 +324,7 @@ sub upgrade {
    order_id INT PRIMARY KEY NOT NULL,
    json LONGTEXT,
    FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     }

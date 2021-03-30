@@ -23,7 +23,7 @@ use C4::Biblio qw( GetMarcBiblio AddBiblio GetBiblioData );
 use Koha::Plugin::VendorAcquisition::OrderItem;
 use MARC::File::XML;
 use Koha::Acquisition::Currencies;
-use Koha::DateUtils qw( dt_from_string );
+use Koha::DateUtils qw( dt_from_string output_pref );
 use Encode;
 use utf8;
 
@@ -62,7 +62,8 @@ sub new_from_hash {
     for my $field (fields()) {
         $self->{$field} = $data->{$field};
     }
-    $self->{estimated_delivery_date} = dt_from_string($self->{estiamted_delivery_date}, 'sql');
+
+    $self->{estimated_delivery_date} = dt_from_string($self->{estimated_delivery_date}, 'sql');
 
     my $record;
     eval {
@@ -277,7 +278,7 @@ EOF
             $self->{isbn},
             $self->{callnumber},
             $self->{callnumber_standard},
-            $self->{estimated_delivery_date},
+            output_pref({ str => $self->{estimated_delivery_date}, dateonly => 1, dateformat => 'iso' }),
             $self->{biblioid},
             $self->{biblioid_standard},
             $self->{note},
@@ -396,6 +397,7 @@ sub validate_item_data {
     $self->{biblioid} = $self->data('ItemID');
     $self->{biblioid_standard} = $self->data('ItemIDStandard');
     $self->{biblionumber} = undef;
+
     $self->{estimated_delivery_date} = $self->{order}->parse_datetime($self->data('ItemEstimatedDeliveryDate'));
 
     if (defined $format && $format ne '') {
