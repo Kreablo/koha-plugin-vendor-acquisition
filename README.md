@@ -6,13 +6,24 @@ implement the protocol of this plugin.
 
 ## Installation
 
-Make sure plugins are enabled (<enable_plugins>1</enable_plugins> in
+Make sure plugins are enabled (&lt;enable\_plugins&gt;1&lt;/enable\_plugins&gt; in
 /yazgfc/config of koha-conf.xml) and that the koha-instance have full
-permissions on the directory specified by the element <pluginsdir/> in
+permissions on the directory specified by the element &lt;pluginsdir/&gt; in
 koha-conf.xml.
 
 * Go to Koha administration -> Manage plugins.
 * Click on "upload plugin" and upload the kpz-file.
+
+## Upgrade
+
+Unfortunately plack cannot reload perl-packages dynamically and needs
+to be restarted, so shell access to the Koha server is needed to
+complete the upgrade process.
+
+* Go to Koha administration -> Manage plugins.
+* Click on "upload plugin" and upload the kpz-file corresponding to a
+  newer version of the plugin.
+* Restart plack (if plack is enabled).
 
 ## Security token
 
@@ -21,6 +32,10 @@ generates a random token upon installation.  This token is part of the
 URL that needs to be communicated to the vendor.  Note that if the
 plugin is reinstalled, this token may be regenerated and then a new
 link needs to be communicated to the vendor.
+
+**Note that the security token currently needs to be added to the form
+data by the vendor, so you may need to communicate this token
+separately to the vendor.**
 
 ## Configuration
 
@@ -36,7 +51,7 @@ Click "save configuration" after changing the configuration/.
 
 A record match rule can be selected in order to avoid reimporting
 already existing records.  New record matching rules can be configured
-under Kuha administration -> Record matching rules.
+under Koha administration -> Record matching rules.
 
 When receiving an order, the match with highest score, if any matches,
 will be selected by default.  The user will be able to choose a
@@ -77,7 +92,7 @@ rules without giving an explicit customer number.
 This plugin is only accessible to users that have staff access.  On top of that:
 
 - to receive orders a user must have the permission **plugins/vendor_order_receive**,
-- to install the plugin the user needs the permission **plugins/manage**,
+- to install or upgrade the plugin the user needs the permission **plugins/manage**,
 - to configure the plugin the user needs the permission **plugins/configure**.
 
 ## Building
