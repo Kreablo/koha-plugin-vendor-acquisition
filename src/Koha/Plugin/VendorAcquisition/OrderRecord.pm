@@ -278,7 +278,7 @@ EOF
             $self->{isbn},
             $self->{callnumber},
             $self->{callnumber_standard},
-            output_pref({ str => $self->{estimated_delivery_date}, dateonly => 1, dateformat => 'iso' }),
+            scalar(output_pref({ str => $self->{estimated_delivery_date}, dateonly => 1, dateformat => 'iso' })),
             $self->{biblioid},
             $self->{biblioid_standard},
             $self->{note},
