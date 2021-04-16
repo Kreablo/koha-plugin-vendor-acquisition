@@ -63,7 +63,8 @@ sub new_from_hash {
         $self->{$field} = $data->{$field};
     }
 
-    $self->{estimated_delivery_date} = dt_from_string($self->{estimated_delivery_date}, 'sql');
+    my $edd = $self->{estimated_delivery_date};
+    $self->{estimated_delivery_date} = dt_from_string($edd, 'sql') if defined $edd && $edd !~ /^\s*$/;
 
     my $record;
     eval {
