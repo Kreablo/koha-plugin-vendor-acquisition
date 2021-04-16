@@ -28,14 +28,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.7";
+our $VERSION = "1.8";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2021-03-30",
+    date_updated    => "2021-04-16",
     minimum_version => '20.05.01',
     maximum_version => '',
     version         => $VERSION,
@@ -352,7 +352,7 @@ sub configure {
         # in this package and in the parent package.  We clean this up
         # when we configure the plugin.
 
-        if (! grep {$_ eq $method->plugin_method} ('configure', 'install', 'uninstall', 'upgrade', 'vendor_order_receive', 'intranet_js')) {
+        if (! grep {$_ eq $method->plugin_method} ('configure', 'install', 'uninstall', 'upgrade', 'enable', 'disable', 'vendor_order_receive', 'intranet_js')) {
             $method->delete;
         }
     }
@@ -673,7 +673,7 @@ sub vendor_order_receive {
                     CLASS       => $self->{'class'},
                     METHOD      => scalar $self->{'cgi'}->param('method'),
                     PLUGIN_PATH => $self->get_plugin_http_path(),
-                    PLUGIN_DIR  => $self->get_plugin_dir(),
+                    PLUGIN_DIR  => $self->bundle_path,
                     LANG        => C4::Languages::getlanguage($self->{'cgi'}),
                     order       => $order,
                     save        => $save,
@@ -718,7 +718,7 @@ sub vendor_order_receive {
             CLASS       => $self->{'class'},
             METHOD      => scalar $self->{'cgi'}->param('method'),
             PLUGIN_PATH => $self->get_plugin_http_path(),
-            PLUGIN_DIR  => $self->get_plugin_dir(),
+            PLUGIN_DIR  => $self->bundle_path,
             LANG        => C4::Languages::getlanguage($self->{'cgi'}),
             token       => $self->retrieve_data('token')
             );
@@ -741,7 +741,7 @@ sub vendor_order_receive {
           CLASS       => $self->{'class'},
           METHOD      => scalar $self->{'cgi'}->param('method'),
           PLUGIN_PATH => $self->get_plugin_http_path(),
-          PLUGIN_DIR  => $self->get_plugin_dir(),
+          PLUGIN_DIR  => $self->bundle_path,
           LANG        => C4::Languages::getlanguage($self->{'cgi'}),
           token       => $self->retrieve_data('token'),
           token_success => $token_success,
