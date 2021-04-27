@@ -346,7 +346,7 @@ EOF
                  $self->{api_version},
                  $self->{continue_url},
                  $self->{vendor},
-                 output_pref({ str => $self->{when_ordered}, dateformat => 'iso' }),
+                 scalar(output_pref({ str => $self->{when_ordered}, dateformat => 'iso' })),
                  $self->{order_note},
                  $self->{budget_id},
                  $self->{basketno}
@@ -537,7 +537,7 @@ sub process {
                 unitprice_tax_included => $record->{price_inc_vat},
                 rrp_tax_included => $record->{rrp_price},
                 tax_rate_bak => $record->{vat},
-                order_internalnote => $internalnote_template->output,
+                order_internalnote => scalar($internalnote_template->output),
                 order_vendornote => $self->{order_note},
                 purchaseordernumber => $self->{order_number}
             };
