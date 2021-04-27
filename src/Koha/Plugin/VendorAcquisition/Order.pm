@@ -87,6 +87,12 @@ sub new_from_json {
            $self->validate();
            $self->validate_items();
        }
+
+       my $rule = $self->default_values;
+
+       if (defined $rule->{budget_id}) {
+           $self->{budget_id} = $rule->{budget_id};
+       }
     }
 
     $self->record_duplicates;
@@ -617,6 +623,52 @@ sub parse_datetime {
     }
 
     return $datetime;
+}
+
+sub default_values {
+    my $self = shift;
+
+    if (defined $self->{default_values}) {
+        return $self->{default_values};
+    }
+
+    my $dbh   = C4::Context->dbh;
+
+    my $dvtable = $self->table_naming('default_values');
+
+    my $sql = "SELECT customer_number, notforloan, homebranch, holdingbranch, itemtype, ccode, location, budget_id FROM `$dvtable` WHERE customer_number IN (?, '*')";
+
+    my $sth = $dbh->prepare($sql);
+
+    my $rv = $sth->execute($self->{customer_number});
+
+    if (!$rv) {
+        $self->_err("Failed to query default values: " . $dbh->errstr);
+        return;
+    }
+
+    my $defrule;
+    my $customerrule;
+
+    while (my $row = $sth->fetchrow_hashref) {
+        if ($row->{customer_number} eq '*') {
+            $defrule = $row;
+        } else {
+            $customerrule = $row;
+        }
+    }
+
+    my $rule;
+
+    if (defined $customerrule) {
+        $rule = $customerrule;
+    } elsif (defined $defrule) {
+        $rule = $defrule;
+    }
+
+    $self->{default_values} = $rule;
+
+    return $rule;
 }
 
 

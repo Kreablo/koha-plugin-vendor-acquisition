@@ -125,6 +125,11 @@ $stash->set('defined' => sub { return defined $_[0]; });
                     <td><input name="customer-id" id="[% id_ %]" type="text" value="[% dv.customer_id | html %]" required /></td>
                   </tr>
                   <tr>
+                    [% SET id_ = "default-budget-" _ loop.index() %]
+                    <th><label for="budget">[% MSG.default_budget | html %]</label></th>
+                    <td>[% PROCESS select list=budgets id=id_ name="default-budget_id" value=dv.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none %]</td>
+                  </tr>
+                  <tr>
                     <th>
                       [% SET id_ = "default-itemtype-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_itemtype | html %]</label>

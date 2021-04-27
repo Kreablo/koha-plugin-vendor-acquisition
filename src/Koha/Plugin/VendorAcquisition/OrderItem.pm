@@ -62,39 +62,7 @@ sub update_from_cgi {
 sub initiate {
     my $self = shift;
 
-    my $dbh   = C4::Context->dbh;
-
-    my $dvtable = $self->table_naming('default_values');
-
-    my $sql = "SELECT customer_number, notforloan, homebranch, holdingbranch, itemtype, ccode, location FROM `$dvtable` WHERE customer_number IN (?, '*')";
-
-    my $sth = $dbh->prepare($sql);
-
-    my $rv = $sth->execute($self->{record}->{order}->{customer_number});
-
-    if (!$rv) {
-        $self->_err("Failed to query default values: " . $dbh->errstr);
-        return;
-    }
-
-    my $defrule;
-    my $customerrule;
-
-    while (my $row = $sth->fetchrow_hashref) {
-        if ($row->{customer_number} eq '*') {
-            $defrule = $row;
-        } else {
-            $customerrule = $row;
-        }
-    }
-
-    my $rule;
-
-    if (defined $customerrule) {
-        $rule = $customerrule;
-    } elsif (defined $defrule) {
-        $rule = $defrule;
-    }
+    my $rule = $self->{record}->{order}->default_values;
 
     if (defined $rule) {
         for my $field ('customer_number', 'notforloan', 'homebranch', 'holdingbranch', 'location', 'ccode', 'itemtype') {

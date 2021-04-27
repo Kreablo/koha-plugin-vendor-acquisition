@@ -15,6 +15,7 @@
    customer_number = "Customer number",
    customer_id = "Customer Number (use * to add values for all other customer numbers)",
    configure = "Configure vendor acquisition plugin",
+   default_budget = "Default budget",
    demo_mode = "Enable demo mode",
    demo_submit_data = "Submit demo data",
    default_ccode = "Collection code",

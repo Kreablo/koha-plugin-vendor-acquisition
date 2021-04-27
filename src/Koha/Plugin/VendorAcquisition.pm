@@ -28,14 +28,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.8";
+our $VERSION = "1.9";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2021-04-16",
+    date_updated    => "2021-04-27",
     minimum_version => '20.05.01',
     maximum_version => '',
     version         => $VERSION,
@@ -219,17 +219,19 @@ EOF
    location VARCHAR(80) DEFAULT NULL,
    itemtype VARCHAR(10) DEFAULT NULL COLLATE utf8mb4_unicode_ci,
    ccode VARCHAR(80) DEFAULT NULL,
+   budget_id INT DEFAULT NULL,
    INDEX (homebranch),
    INDEX (holdingbranch),
    INDEX (itemtype),
    FOREIGN KEY (homebranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
    FOREIGN KEY (holdingbranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
-   FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL
+   FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL,
+   FOREIGN KEY (budget_id) REFERENCES aqbudgets (budget_id) ON UPDATE CASCADE ON DELETE SET NULL
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     my $order_json_table = $self->get_qualified_table_name('order_json');
-    $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<'EOF');
+    $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<EOF);
 (
    order_id INT PRIMARY KEY NOT NULL,
    json LONGTEXT,
@@ -319,7 +321,7 @@ sub upgrade {
     if (version_cmp($database_version, '1.5') < 0) {
         my $order_json_table = $self->get_qualified_table_name('order_json');
         my $ordertable = $self->get_qualified_table_name('order');
-        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<EOF);
+        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<"EOF");
 (
    order_id INT PRIMARY KEY NOT NULL,
    json LONGTEXT,
@@ -327,6 +329,12 @@ sub upgrade {
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
+    }
+
+    if (version_cmp($database_version, '1.9') < 0) {
+        my $dvtable = $self->get_qualified_table_name('default_values');
+        $dbh->do("ALTER IGNORE TABLE `$dvtable` ADD COLUMN budget_id INT DEFAULT NULL AFTER ccode");
+        $dbh->do("ALTER IGNORE TABLE `$dvtable` ADD FOREIGN KEY (budget_id) REFERENCES aqbudgets(budget_id) ON UPDATE CASCADE ON DELETE SET NULL");
     }
 
     return $success;
@@ -456,12 +464,13 @@ sub configure {
         my @dv_notforloan = $cgi->multi_param('default-notforloan');
         my @dv_ccode = $cgi->multi_param('default-ccode');
         my @dv_itemtype = $cgi->multi_param('default-itemtype');
+        my @dv_budget_id = $cgi->multi_param('default-budget_id');
 
         my %default_values = ();
         my @default_values = ();
 
         for (my $i = 0; $i < scalar(@dv_customer_id); $i++) {
-            last if $i >= scalar(@dv_homebranch) || $i >= scalar(@dv_holdingbranch) || $i >= scalar(@dv_location) || $i > scalar(@dv_notforloan) || $i > scalar(@dv_itemtype) || $i > scalar(@dv_ccode) ;
+            last if $i >= scalar(@dv_homebranch) || $i >= scalar(@dv_holdingbranch) || $i >= scalar(@dv_location) || $i > scalar(@dv_notforloan) || $i > scalar(@dv_itemtype) || $i > scalar(@dv_ccode) || $i > scalar(@dv_budget_id) ;
             $default_values{$dv_customer_id[$i]} = {
                 customer_id => $dv_customer_id[$i],
                 homebranch => $dv_homebranch[$i],
@@ -469,7 +478,8 @@ sub configure {
                 location => $dv_location[$i],
                 notforloan => $dv_notforloan[$i],
                 itemtype => $dv_itemtype[$i],
-                ccode => $dv_ccode[$i]
+                ccode => $dv_ccode[$i],
+                budget_id => $dv_budget_id[$i]
             };
         }
 
@@ -479,7 +489,7 @@ sub configure {
 
         if (scalar(@default_values) > 0) {
 
-            my $dvsql = "INSERT IGNORE INTO `$dvtable` (customer_number, notforloan, homebranch, holdingbranch, location, itemtype, ccode) VALUES ";
+            my $dvsql = "INSERT IGNORE INTO `$dvtable` (customer_number, notforloan, homebranch, holdingbranch, location, itemtype, ccode, budget_id) VALUES ";
             my $first = 1;
             my @binds = ();
 
@@ -493,7 +503,7 @@ sub configure {
                 } else {
                     $dvsql .= ", ";
                 }
-                $dvsql .= "(?, ?, ?, ?, ?, ?, ?)";
+                $dvsql .= "(?, ?, ?, ?, ?, ?, ?, ?)";
                 $p->($dv->{customer_id});
                 $p->($dv->{notforloan});
                 $p->($dv->{homebranch});
@@ -501,6 +511,7 @@ sub configure {
                 $p->($dv->{location});
                 $p->($dv->{itemtype});
                 $p->($dv->{ccode});
+                $p->($dv->{budget_id});
             }
 
             my $sth = $dbh->prepare($dvsql);
@@ -535,7 +546,7 @@ sub configure {
         };
     }
 
-    my $dvs = $dbh->selectall_arrayref("SELECT customer_number, notforloan, homebranch, holdingbranch, location, ccode, itemtype FROM `$dvtable`");
+    my $dvs = $dbh->selectall_arrayref("SELECT customer_number, notforloan, homebranch, holdingbranch, location, ccode, itemtype, budget_id FROM `$dvtable`");
     my @default_values = ();
 
     for my $dv (@$dvs) {
@@ -546,7 +557,8 @@ sub configure {
             holdingbranch => $dv->[3],
             location => $dv->[4],
             ccode => $dv->[5],
-            itemtype => $dv->[6]
+            itemtype => $dv->[6],
+            budget_id => $dv->[7]
         };
     }
 
@@ -562,6 +574,7 @@ sub configure {
         record_match_rule => $record_match_rule,
         demomode => $self->retrieve_data('demomode'),
         booksellers => $booksellers->unblessed,
+        budgets => Koha::Acquisition::Funds->search()->unblessed,
         matchers => \@matchers,
         vendor_mappings => \@vendor_mappings,
         errors => \@errors,
