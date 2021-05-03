@@ -562,6 +562,14 @@ sub configure {
         };
     }
 
+    my $budgets = Koha::Acquisition::Funds->search(
+        {
+            budget_period_active => 1
+        },
+        {
+            join => 'budget_period'
+        })->unblessed;
+
     my $template = $self->get_template( { file => 'configure.tt' } );
     $template->param(
         lang_dialect => $lang,
@@ -574,7 +582,7 @@ sub configure {
         record_match_rule => $record_match_rule,
         demomode => $self->retrieve_data('demomode'),
         booksellers => $booksellers->unblessed,
-        budgets => Koha::Acquisition::Funds->search()->unblessed,
+        budgets => $budgets,
         matchers => \@matchers,
         vendor_mappings => \@vendor_mappings,
         errors => \@errors,
@@ -669,6 +677,15 @@ sub vendor_order_receive {
             if ($cgi->param('save') eq 'process') {
                 print $cgi->redirect($order->{basket_url});
             } else {
+
+                my $budgets = Koha::Acquisition::Funds->search(
+                    {
+                        budget_period_active => 1
+                    },
+                    {
+                        join => 'budget_period'
+                    })->unblessed;
+
                 $template->param(
                     lang_dialect => $lang,
                     lang_all => $lang_split[0],
@@ -679,7 +696,7 @@ sub vendor_order_receive {
                     locav =>  Koha::AuthorisedValues->search({ category => 'LOC' })->unblessed,
                     ccodeav => Koha::AuthorisedValues->search({ category => 'CCODE' })->unblessed,
                     branches => Koha::Libraries->search()->unblessed,
-                    budgets => Koha::Acquisition::Funds->search()->unblessed,
+                    budgets => $budgets,
                     baskets => Koha::Acquisition::Baskets->search()->unblessed,
                     itemtypes => Koha::ItemTypes->search()->unblessed,
                     configure_url => $configure_url,
