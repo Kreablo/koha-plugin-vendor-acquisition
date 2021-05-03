@@ -66,7 +66,7 @@ sub initiate {
 
     if (defined $rule) {
         for my $field ('customer_number', 'notforloan', 'homebranch', 'holdingbranch', 'location', 'ccode', 'itemtype') {
-            if (($field eq 'homebranch' || $field eq 'holdingbranch') && (!defined $rule->{field} || $rule->{field} eq '')) {
+            if (($field eq 'homebranch' || $field eq 'holdingbranch') && (!defined $rule->{$field} || $rule->{$field} eq '')) {
                 $self->{$field} = C4::Context->userenv->{'branch'};
             } else {
                 $self->{$field} = $rule->{$field};
