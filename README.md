@@ -4,6 +4,13 @@ This plugin facilitates receiving acquisition orders from a vendor,
 where the order is initiated at the vendor's site.  The vendor must
 implement the protocol of this plugin.
 
+## API specification
+
+The vendor must implement the following API for sending order data to Koha:
+
+https://docs.google.com/document/d/13EIWxTlN3Wo-8OtJuwu5serQu-dl-zdpK1qY5BNs0dk/edit
+
+
 ## Installation
 
 Make sure plugins are enabled (&lt;enable\_plugins&gt;1&lt;/enable\_plugins&gt; in
