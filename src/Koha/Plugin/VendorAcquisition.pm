@@ -562,13 +562,7 @@ sub configure {
         };
     }
 
-    my $budgets = Koha::Acquisition::Funds->search(
-        {
-            budget_period_active => 1
-        },
-        {
-            join => 'budget_period'
-        })->unblessed;
+    my $budgets = budget_list();
 
     my $template = $self->get_template( { file => 'configure.tt' } );
     $template->param(
@@ -597,6 +591,33 @@ sub configure {
         );
 
     $self->output_html( $template->output() );
+}
+
+my $budget_list;
+
+sub budget_list {
+    my $dbh   = C4::Context->dbh;
+
+    if (defined $budget_list) {
+
+        return $budget_list;
+    }
+
+    my $query = <<'EOF';
+SELECT budget_id, budget_name FROM aqbudgets JOIN aqbudgetperiods USING (budget_period_id) WHERE budget_period_active;
+EOF
+
+    my $sth = $dbh->prepare($query);
+
+    $sth->execute();
+
+    $budget_list = [];
+
+    while (my $budget = $sth->fetchrow_hashref) {
+        push @$budget_list, $budget;
+    }
+
+    return $budget_list;
 }
 
 sub vendor_order_receive {
@@ -678,13 +699,7 @@ sub vendor_order_receive {
                 print $cgi->redirect($order->{basket_url});
             } else {
 
-                my $budgets = Koha::Acquisition::Funds->search(
-                    {
-                        budget_period_active => 1
-                    },
-                    {
-                        join => 'budget_period'
-                    })->unblessed;
+                my $budgets = budget_list();
 
                 $template->param(
                     lang_dialect => $lang,

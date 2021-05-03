@@ -18,7 +18,6 @@ package Koha::Plugin::VendorAcquisition::OrderRecord;
 
 use strict;
 use C4::XSLT;
-use Data::Dumper;
 use C4::Matcher;
 use C4::Biblio qw( GetMarcBiblio AddBiblio GetBiblioData );
 use Koha::Plugin::VendorAcquisition::OrderItem;
