@@ -258,8 +258,8 @@ main h4, main h5, main h6 {
                                   <td>[% PROCESS select id=id_ name=name_ list=itemtypes value=record_item.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=1 %]</td>
                                 </tr>
                                 <tr>
-                                  [% SET id_ = "itemtype-" _ record_item.item_id %]
-                                  [% SET name_ = "itemtype-" _ record_item.item_id %]
+                                  [% SET id_ = "ccode-" _ record_item.item_id %]
+                                  [% SET name_ = "ccode-" _ record_item.item_id %]
                                   <th><label for="[% id_ %]">[% MSG.ccode %]</label></th>
                                   <td>[% PROCESS select id=id_ name=name_ list=ccodeav value=record_item.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                                 </tr>

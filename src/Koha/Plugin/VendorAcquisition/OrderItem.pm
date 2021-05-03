@@ -51,7 +51,7 @@ sub new_from_hash {
 sub update_from_cgi {
     my ($self, $cgi) = @_;
 
-    for my $field (qw(notforloan homebranch holdingbranch location itemnumber)) {
+    for my $field (qw(notforloan homebranch holdingbranch location itemnumber itemtype ccode)) {
         my $val = $cgi->param($field . '-' . $self->{item_id});
         if (defined $val) {
             $self->{$field} = $val;
