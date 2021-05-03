@@ -71,6 +71,9 @@ sub initiate {
             } else {
                 $self->{$field} = $rule->{$field};
             }
+            if ($field eq 'notforloan' && (!defined $rule->{$field} || $rule->{$field} eq '')) {
+                $self->{$field} = 0;
+            }
         }
     }
 }
