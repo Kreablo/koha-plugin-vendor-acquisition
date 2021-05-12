@@ -127,49 +127,49 @@ $stash->set('defined' => sub { return defined $_[0]; });
                   <tr>
                     [% SET id_ = "default-budget-" _ loop.index() %]
                     <th><label for="budget">[% MSG.default_budget | html %]</label></th>
-                    <td>[% PROCESS select list=budgets id=id_ name="default-budget_id" value=dv.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none %]</td>
+                    <td>[% PROCESS select list=budgets id=id_ name="default-budget_id" value=dv.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-itemtype-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_itemtype | html %]</label>
                     </th>
-                    <td>[% PROCESS select list=itemtypes name="default-itemtype" id=id_ value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required="1" %]</td>
+                    <td>[% PROCESS select list=itemtypes name="default-itemtype" id=id_ value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-ccode-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_ccode | html %]</label>
                     </th>
-                    <td>[% PROCESS select list=ccodeav name="default-ccode" id=id_ value=dv.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select list=ccodeav name="default-ccode" id=id_ value=dv.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-homebranch-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_homebranch | html %]</label>
                     </th>
-                    <td>[% PROCESS select list=branches name="default-homebranch" id=id_ value=dv.homebranch emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" %]</td>
+                    <td>[% PROCESS select list=branches name="default-homebranch" id=id_ value=dv.homebranch emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-holdingbranch-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_holdingbranch %]</label>
                     </th>
-                    <td>[% PROCESS select id=id_ list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none value=dv.holdingbranch valuekey="branchcode" labelkey="branchname" %]</td>
+                    <td>[% PROCESS select id=id_ list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none value=dv.holdingbranch valuekey="branchcode" labelkey="branchname" required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-location-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_location %]</label>
                     </th>
-                    <td>[% PROCESS select id=id_ list=locav name="default-location"  emptyval=1 emptylabel=MSG.none value=dv.location valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select id=id_ list=locav name="default-location"  emptyval=1 emptylabel=MSG.none value=dv.location valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                   <tr>
                     <th>
                       [% SET id_ = "default-notforloan-" _ loop.index() %]
                       <label for="[% id_ %]">[% MSG.default_notforloan %]</label>
                     </th>
-                    <td>[% PROCESS select id=id_ list=notforloanav name="default-notforloan" value=dv.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select id=id_ list=notforloanav name="default-notforloan" value=dv.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                 </tbody>
               </table>
@@ -230,27 +230,27 @@ $stash->set('defined' => sub { return defined $_[0]; });
                   </tr>
                   <tr>
                     <th><label data-for="default-itemtype">[% MSG.default_itemtype %]</label></th>
-                    <td>[% PROCESS select list=itemtypes name="default-itemtype"  emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" %]</td>
+                    <td>[% PROCESS select list=itemtypes name="default-itemtype"  emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</td>
                   </tr>
                   <tr>
                     <th><label data-for="default-ccode">[% MSG.default_ccode %]</label></th>
-                    <td>[% PROCESS select list=ccodeav name="default-ccode"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select list=ccodeav name="default-ccode"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                   <tr>
                     <th><label data-for="default-homebranch">[% MSG.default_homebranch %]</label></th>
-                    <td>[% PROCESS select list=branches name="default-homebranch"  emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" %]</td>
+                    <td>[% PROCESS select list=branches name="default-homebranch"  emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
                   </tr>
                   <tr>
                     <th><label data-for="default-holdingbranch">[% MSG.default_holdingbranch %]</label></th>
-                    <td>[% PROCESS select list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" %]</td>
+                    <td>[% PROCESS select list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
                   </tr>
                   <tr>
                     <th><label data-for="default-location">[% MSG.default_location %]</label></th>
-                    <td>[% PROCESS select list=locav name="default-location"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select list=locav name="default-location"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                   <tr>
                     <th><label data-for="default-notforloan">[% MSG.default_notforloan %]</label></th>
-                    <td>[% PROCESS select list=notforloanav name="default-notforloan" emptyval=0 valuekey="authorised_value" labelkey="lib" %]</td>
+                    <td>[% PROCESS select list=notforloanav name="default-notforloan" emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</td>
                   </tr>
                 </tbody>
               </table>
