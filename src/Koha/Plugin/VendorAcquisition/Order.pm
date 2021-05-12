@@ -120,7 +120,7 @@ sub update_from_cgi {
 
             my $basketinfo = {
                 basketname => $basketname,
-                booksellerid => $self->{booksellerid},
+                booksellerid => $self->booksellerid,
                 create_items => 'ordering',
 		creationdate => $date,
 		authorisedby => C4::Context->userenv->{'number'},
@@ -572,6 +572,8 @@ sub process {
 sub booksellerid {
     my $self = shift;
 
+    return $self->{booksellerid} if (defined $self->{booksellerid});
+
     my $dbh   = C4::Context->dbh;
 
     my $vmtable = $self->table_naming('vendormapping');
@@ -597,6 +599,8 @@ sub booksellerid {
     if (scalar(@row) > 1) {
         $self->_warn("Multiple (" . scalar(@row) . ") vendor mappings for vendor '" . $self->{vendor} . "'");
     }
+
+    $self->{booksellerid} = $row[0];
 
     return $row[0];
 }
