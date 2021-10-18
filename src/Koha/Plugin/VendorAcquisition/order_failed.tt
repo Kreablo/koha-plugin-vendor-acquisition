@@ -25,7 +25,7 @@
   <div class="row">
     <div class="col-sm-10 col-sm-push-2">
       <main>
-        <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order_failur | html %]</h3>
+        <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order_failure | html %]</h3>
         <p>[% MSG.receive_order_failure_message | html %]</p>
         [% IF !token_success %]
         <p>[% MSG.receive_order_failed_token | html %]</p>
