@@ -19,6 +19,7 @@ use C4::Auth;
 use C4::Matcher;
 use JSON;
 use URI;
+use Koha::Logger;
 
 use strict;
 
@@ -28,7 +29,7 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.11";
+our $VERSION = "1.12";
 our $API_VERSION = "1.0";
 
 our $metadata = {
@@ -651,37 +652,46 @@ sub vendor_order_receive {
         if ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token) {
             my $schema = Koha::Database->schema;
 
-            $schema->txn_do(sub {
-                if ($cgi->param('save') eq 'save') {
-                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                    $order->update_from_cgi($cgi);
-                    if ($order->valid) {
-                        $order->store;
-                    }
-                    $save = 1;
-                } elsif ($cgi->param('save') eq 'process') {
-                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                    $order->update_from_cgi($cgi);
-                    if ($order->valid) {
-                        $order->store;
-                    }
-                    $already_processed = $order->imported;
-                    if (!$already_processed) {
-                        $order->process($lang, $self);
+            eval {
+                $schema->txn_do(sub {
+                    if ($cgi->param('save') eq 'save') {
+                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
+                        $order->update_from_cgi($cgi);
                         if ($order->valid) {
                             $order->store;
                         }
+                        $save = 1;
+                    } elsif ($cgi->param('save') eq 'process') {
+                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
+                        $order->update_from_cgi($cgi);
+                        $order->start_die_on_error;
+                        if ($order->valid) {
+                            $order->store;
+                        }
+                        $already_processed = $order->imported;
+                        if (!$already_processed) {
+                            $order->process($lang, $self);
+                            if ($order->valid) {
+                                $order->store;
+                            }
+                        }
+                        $order->stop_die_on_error;
+                        $save = 1;
+                    } else {
+                        my $json = $cgi->param('order');
+                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                        if ($order->valid) {
+                            $order->store;
+                            $order->load;
+                        }
                     }
-                    $save = 1;
-                } else {
-                    my $json = $cgi->param('order');
-                    $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
-                    if ($order->valid) {
-                        $order->store;
-                        $order->load;
-                    }
-                }
-            });
+                });
+            };
+            if ($@) {
+                my $logger = Koha::Logger->get;
+
+                $logger->error("Failed to commit order data: " . $@);
+            }
 
         } else {
             $order->{errors} = ('Invalid security token.');
@@ -695,7 +705,7 @@ sub vendor_order_receive {
                 debug => $debug
             });
 
-            if ($cgi->param('save') eq 'process') {
+            if ($cgi->param('save') eq 'process' && $save) {
                 print $cgi->redirect($order->{basket_url});
             } else {
 

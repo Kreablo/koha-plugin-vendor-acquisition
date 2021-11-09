@@ -132,17 +132,11 @@ EOF
 
     if (!$rv) {
         $self->_err("Failed to save item: " . $dbh->errstr);
-        goto FAIL;
     }
 
     if (!defined $self->{item_id}) {
         $self->{item_id} = $dbh->last_insert_id(undef, undef, $itemtable, undef);
     }
-
-    return 1;
-
-  FAIL:
-    return 0;
 }
 
 sub delete {
@@ -209,19 +203,23 @@ sub fields {
 }
 
 sub _err {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "ERROR: $msg";
+    unless ($nopush) {
+        push @{$self->{errors}}, $msg;
+    }
 
-    push @{$self->{errors}}, $msg;
+    $self->{record}->_err($msg, 1);
 }
 
 sub _warn {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "WARNING: $msg";
+    unless ($nopush) {
+        push @{$self->{warnings}}, $msg;
+    }
 
-    push @{$self->{warnings}}, $msg;
+    $self->{record}->_warn("$msg", 1);
 }
 
 sub errors {

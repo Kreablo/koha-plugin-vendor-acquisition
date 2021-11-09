@@ -44,6 +44,8 @@ sub new {
     $self->{is_new} = 0;
     $self->{record_ids} = {};
 
+    $self->die_on_error(0);
+    
     return $self;
 }
 
@@ -321,6 +323,8 @@ sub delete_records {
 sub store {
     my $self = shift;
 
+    $self->start_die_on_error;
+
     my $dbh   = C4::Context->dbh;
 
     my $ordertable = $self->table_naming('order');
@@ -370,7 +374,6 @@ EOF
 
     if (!$rv) {
         $self->_err("Failed to store order data: " . $dbh->errstr);
-        goto FAIL;
     }
 
     if (!defined $self->{order_id}) {
@@ -382,19 +385,12 @@ EOF
 
 
     for my $record (@{$self->{records}}) {
-        if (!$record->store) {
-            goto FAIL;
-        }
+        $record->store;
     }
 
     $self->delete_records;
 
-    return 1;
-
-  FAIL:
-    $dbh->rollback;
-
-    return 0;
+    $self->stop_die_on_error;
 }
 
 sub load {
@@ -503,16 +499,16 @@ sub process {
         return 0;
     }
 
+    $self->start_die_on_error;
+
     my $booksellerid = $self->booksellerid;
 
     if (!defined $booksellerid) {
-        goto FAIL;
+        $self->_err("No booksellerid in order!.");
     }
 
     for my $record (@{$self->{records}}) {
-        if (!$record->process) {
-            goto FAIL;
-        }
+        $record->process;
         if ($record->{ordernumber}) {
             next;
         } else {
@@ -560,13 +556,9 @@ sub process {
 
     $self->store;
 
+    $self->stop_die_on_error;
+
     return 1;
-
-  FAIL:
-
-    $dbh->rollback;
-
-    return 0;
 }
 
 sub booksellerid {
@@ -683,26 +675,68 @@ sub format_datetime {
     return $self->{date_format}->format_datetime($datetime);
 }
 
+sub start_die_on_error {
+    my ($self, $die_on_error) = @_;
+
+    $self->{die_on_error}++;
+}
+
+sub stop_die_on_error {
+    my $self = shift;
+
+    $self->{die_on_error}--;
+}
+
+sub die_on_error {
+    my $self = shift;
+
+    return $self->{die_on_error} > 0;
+}
+
 sub _err {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "ERROR: $msg";
+    my $logger = Koha::Logger->get;
 
-    push @{$self->{errors}}, $msg;
+    unless ($nopush) {
+        push @{$self->{errors}}, $msg;
+    }
+
+    if ($self->die_on_error) {
+        die $msg;
+    }
+    
+    $logger->error("$msg");
 }
 
 sub _warn {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "WARNING: $msg";
+    my $logger = Koha::Logger->get;
 
-    push @{$self->{warnings}}, $msg;
+    unless ($nopush) {
+        push @{$self->{warnings}}, $msg;
+    }
+
+    $logger->warn("$msg");
 }
 
 sub errors {
     my $self = shift;
 
     return @{$self->{errors}};
+}
+
+sub all_errors {
+    my $self = shift;
+
+    my @errors = @{$self->{errors}};
+
+    for my $record (@{$self->{records}}) {
+        push @errors, $record->all_errors;
+    }
+
+    return @errors;
 }
 
 sub warnings {
@@ -716,5 +750,14 @@ sub data {
 
     return $self->{data}->{$field};
 }
+
+sub cleanup {
+    my $self = shift;
+
+    for my $record (@{$self->{records}}) {
+        $record->cleanup;
+    }    
+}
+
 
 1;

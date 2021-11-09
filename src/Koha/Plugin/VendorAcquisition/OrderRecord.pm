@@ -309,7 +309,6 @@ EOF
 
     if (!$rv) {
         $self->_err("Failed to save record: " . $dbh->errstr);
-        goto FAIL;
     }
 
     if (!defined $self->{record_id}) {
@@ -317,17 +316,10 @@ EOF
     }
 
     for my $item (@{$self->{items}}) {
-        if (!$item->store) {
-            goto FAIL;
-        }
+        $item->store;
     }
 
     $self->delete_items;
-
-    return 1;
-
-  FAIL:
-    return 0;
 }
 
 sub validate_item_data {
@@ -373,8 +365,6 @@ sub validate_item_data {
     for my $field (keys %ef) {
         if ($ef{$field} == 2) {
             $self->_err("Required item field '" . $field . "' is missing.");
-        } elsif ($ef{$field} == 1) {
-            $self->_warn("Optional item field '" . $field . "' is missing.");
         }
     }
 
@@ -608,8 +598,7 @@ sub process {
         };
 
         if ($@) {
-            $self->error("Failed to add record: $@");
-            return 0;
+            $self->_err("Failed to add record: $@");
         }
 
         $self->{biblionumber} = $biblionumber;
@@ -618,12 +607,8 @@ sub process {
     }
 
     for my $item (@{$self->{items}}) {
-        if (!$item->process($biblioitemnumber)) {
-            return 0;
-        }
+        $item->process($biblioitemnumber);
     }
-
-    return 1;
 }
 
 sub record_name {
@@ -641,6 +626,33 @@ sub record_name {
     return $id;
 }
 
+sub cleanup {
+    my $self = shift;
+
+    # If the transaction is rolled back we need to cleanup the elastic search index.
+
+    if ( C4::Context->preference('SearchEngine') eq 'Elasticsearch' ) {
+
+        my $dbh   = C4::Context->dbh;
+
+        my $sth = $dbh->prepare("SELECT NOT EXISTS(SELECT * FROM biblio WHERE biblionumber = ?) FROM DUAL");
+
+        $sth->execute($self->{biblionumber});
+
+        my ($garbage) = $sth->fetchrow_array;
+
+        if ($garbage) {
+            require Koha::SearchEngine::Elasticsearch::Indexer;
+            my $indexer = Koha::SearchEngine::Elasticsearch::Indexer->new(
+                {
+                    index => $Koha::SearchEngine::BIBLIOS_INDEX
+                }
+                );
+            $indexer->delete_index_background( [$self->{biblionumber}] );
+        }
+    }
+}
+
 sub set_duplicate {
     my $self = shift;
     my $record = shift;
@@ -650,19 +662,23 @@ sub set_duplicate {
 
 
 sub _err {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "ERROR: $msg";
+    unless ($nopush) {
+        push @{$self->{errors}}, $msg;
+    }
 
-    push @{$self->{errors}}, $msg;
+    $self->{order}->_err("$msg", 1);
 }
 
 sub _warn {
-    my ($self, $msg) = @_;
+    my ($self, $msg, $nopush) = @_;
 
-    warn "WARNING: $msg";
+    unless ($nopush) {
+        push @{$self->{warnings}}, $msg;
+    }
 
-    push @{$self->{warnings}}, $msg;
+    $self->{order}->_warn("$msg", 1);
 }
 
 sub errors {
@@ -676,11 +692,8 @@ sub all_errors {
 
     my @errors = @{$self->{errors}};
 
-    for my $record (@{$self->{records}}) {
-        push @errors, $record->errors;
-        for my $item ( @{$record->{items}} ) {
-            push @errors, $item->errors;
-        }
+    for my $item ( @{$self->{items}} ) {
+        push @errors, $item->errors;
     }
 
     return @errors;
