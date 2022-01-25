@@ -29,15 +29,15 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.12";
+our $VERSION = "1.13";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2021-05-12",
-    minimum_version => '20.05.01',
+    date_updated    => "2022-01-25",
+    minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
     description     => 'Handling of acquired orders from vendors such as Adlibris.'
@@ -650,6 +650,10 @@ sub vendor_order_receive {
         my $already_processed = 0;
 
         if ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token) {
+
+            my $dbh   = C4::Context->dbh;
+            $dbh->{RaiseError} = 1;
+
             my $schema = Koha::Database->schema;
 
             eval {
@@ -687,10 +691,11 @@ sub vendor_order_receive {
                     }
                 });
             };
-            if ($@) {
-                my $logger = Koha::Logger->get;
 
-                $logger->error("Failed to commit order data: " . $@);
+            if ($@) {
+                $order->{die_on_error} = 0;
+
+                $order->_err("Failed to commit order data: " . $@);
             }
 
         } else {
@@ -698,7 +703,7 @@ sub vendor_order_receive {
         }
 
         if ($token_success && $order->valid) {
-            my ($template, $loggedinuser, $cookie) = get_template_and_user({
+            my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
                 template_name   => $self->mbf_path('receive.tt'),
                 query => $cgi,
                 type => "intranet",
@@ -758,7 +763,7 @@ sub vendor_order_receive {
         }
 
     } elsif ($self->retrieve_data('demomode')) {
-        my ($template, $loggedinuser, $cookie) = get_template_and_user({
+        my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
             template_name   => $self->mbf_path('receive-test.tt'),
             query => $cgi,
             type => "intranet",
@@ -781,7 +786,7 @@ sub vendor_order_receive {
         $self->output_html( $template->output() );
 
     } else {
-      my ($template, $loggedinuser, $cookie) = get_template_and_user({
+      my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
             template_name   => $self->mbf_path('order_failed.tt'),
             query => $cgi,
             type => "intranet",
