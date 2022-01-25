@@ -27,6 +27,7 @@ use Koha::Plugin::VendorAcquisition::OrderRecord;
 use Koha::Acquisition::Order;
 use Koha::Acquisition::Basket;
 use Koha::Acquisition::Baskets;
+use C4::Templates;
 use MIME::Base64;
 use Encode;
 use utf8;
@@ -512,8 +513,14 @@ sub process {
         if ($record->{ordernumber}) {
             next;
         } else {
-            my $internalnote_template = $plugin->get_template( { file => 'order_internalnote.tt' } );
+            my $internalnote_template = C4::Templates::gettemplate( $plugin->mbf_path('order_internalnote.tt'), 'intranet', $plugin->{cgi});
+
             $internalnote_template->param(
+                CLASS       => $plugin->{'class'},
+                METHOD      => scalar $plugin->{'cgi'}->param('method'),
+                PLUGIN_PATH => $plugin->get_plugin_http_path(),
+                PLUGIN_DIR  => $plugin->bundle_path(),
+                LANG        => C4::Languages::getlanguage($self->{'cgi'}),
                 lang_dialect => $lang,
                 lang_all => $lang_split[0],
                 plugin_dir => $plugin_dir,
