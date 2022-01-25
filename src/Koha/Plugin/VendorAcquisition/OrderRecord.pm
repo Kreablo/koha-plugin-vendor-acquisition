@@ -95,7 +95,19 @@ sub new_from_hash {
 sub prepare_record {
     my $self = shift;
 
-    $self->{record_display} = XSLTParse4Display(undef, $self->{record}, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+    my $is2111 = C4::Context->preference("Version") >= 21.11;
+
+    if ($is2111) {
+        $self->{record_display} = C4::XSLT::XSLTParse4Display({
+            record => $self->{record},
+            xsl_syspref => 'XSLTDetailsDisplay',
+            fix_amps => 0,
+            branches => {},
+            itemtypes => {}
+        });
+    } else {
+        $self->{record_display} = C4::XSLT::XSLTParse4Display(undef, $self->{record}, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+    }
 
     for my $d ($self->matcher->get_matches($self->{record}, 10)) {
         my $duplicate = {
@@ -110,7 +122,17 @@ sub prepare_record {
             next;
         }
 
-        $duplicate->{record_display} = XSLTParse4Display(undef, $record, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+        if ($is2111) {
+            $duplicate->{record_display} = C4::XSLT::XSLTParse4Display({
+                record => $record,
+                xsl_syspref => 'XSLTDetailsDisplay',
+                fix_amps => 0,
+                branches => {},
+                itemtypes => {}
+            });
+        } else {
+            $duplicate->{record_display} = C4::XSLT::XSLTParse4Display(undef, $record, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+        }
 
         if ($self->{biblionumber} eq $duplicate->{biblionumber}) {
             $duplicate->{selected} = 1;
