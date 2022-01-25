@@ -27,6 +27,8 @@ use Koha::DateUtils qw( dt_from_string output_pref );
 use Encode;
 use utf8;
 
+my $element_id = 1;
+
 sub new {
     my ( $class, $plugin, $lang, $order ) = @_;
 
@@ -40,9 +42,11 @@ sub new {
     $self->{items} = [];
     $self->{duplicate} = undef;
     $self->{duplicates} = [];
+    $self->{element_id} = $element_id++;
 
     return $self;
 }
+
 
 sub new_from_json {
     my ( $class, $plugin, $lang, $order, $item_data ) = @_;
@@ -103,9 +107,10 @@ sub prepare_record {
 
         if (!$record) {
             $self->_warn("Failed to load matching record " . $d->{record_id});
+            next;
         }
 
-        $duplicate->{record_display} = XSLTParse4Display(undef, $self->{record}, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+        $duplicate->{record_display} = XSLTParse4Display(undef, $record, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
 
         if ($self->{biblionumber} eq $duplicate->{biblionumber}) {
             $duplicate->{selected} = 1;

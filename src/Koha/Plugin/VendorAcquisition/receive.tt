@@ -213,8 +213,8 @@ main h4, main h5, main h6 {
                   </ul>
                   [% END %]
                   [% IF record.valid %]
-                  <h5><a href="#record-[% record.record_id %]" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.record_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down" /></a></h5>
-                  <div id="record-[% record.record_id %]" class="collapse">
+                  <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down" /></a></h5>
+                  <div id="record-[% record.element_id %]" class="collapse">
                     <div class="row">
                       <div class="col-xs-12 col-md-6 col-lg-4">
                         <table>
@@ -295,8 +295,8 @@ main h4, main h5, main h6 {
                       [% IF !(record.duplicates.size() == 0 || record.duplicate) %]
                       <div class="col-xs-12 col-md-6 col-lg-4">
                         <h5>[% MSG.records | html %]</h5>
-                        [% SET name_ = "duplicate-biblionumber-" _ record.record_id %]
-                        [% SET id_ = "dup-none-" _ record.record_id %]
+                        [% SET name_ = "duplicate-biblionumber-" _ record.element_id %]
+                        [% SET id_ = "dup-none-" _ record.element_id %]
                         <input id="[% id_ %]" type="radio" class="duplicate-biblio" value="" name="[% name_ %]" [% IF !record.merge_biblionumber %] checked="checked"[% END %]/>
                         <label class="duplicate-biblio" for="[% id_ %]">[% MSG.do_not_use_existing %]</label>
                         <h6>[% MSG.duplicates | html %]</h6>
@@ -304,7 +304,7 @@ main h4, main h5, main h6 {
                         <div class="row">
                           <div class="col-xs-12">
                             <hr />
-                            [% SET id_ = "dup-" _ duplicate.biblionumber _ "-" _ record.record_id %]
+                            [% SET id_ = "dup-" _ duplicate.biblionumber _ "-" _ record.element_id %]
                             <input class="duplicate-biblio" id="[% id_ %]" type="radio" value="[% duplicate.biblionumber %]" name="[% name_ %]"[% IF record.merge_biblionumber == duplicate.biblionumber %] checked="checked"[% END %]/>
                             <label class="duplicate-biblio" for="[% id_ %]"><div class="duplicate-biblio-container">[% duplicate.record_display  %]</div></label>
                           </div>
