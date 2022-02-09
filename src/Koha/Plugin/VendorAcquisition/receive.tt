@@ -295,7 +295,7 @@ main h4, main h5, main h6 {
                       [% IF !(record.duplicates.size() == 0 || record.duplicate) %]
                       <div class="col-xs-12 col-md-6 col-lg-4">
                         <h5>[% MSG.records | html %]</h5>
-                        [% SET name_ = "duplicate-biblionumber-" _ record.element_id %]
+                        [% SET name_ = "duplicate-biblionumber-" _ record.record_id %]
                         [% SET id_ = "dup-none-" _ record.element_id %]
                         <input id="[% id_ %]" type="radio" class="duplicate-biblio" value="" name="[% name_ %]" [% IF !record.merge_biblionumber %] checked="checked"[% END %]/>
                         <label class="duplicate-biblio" for="[% id_ %]">[% MSG.do_not_use_existing %]</label>
