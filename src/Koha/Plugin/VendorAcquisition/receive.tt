@@ -179,15 +179,15 @@ main h4, main h5, main h6 {
                     <th><label for="order-basket">[% MSG.basket | html %]</label></th>
                     <td>
                       <div id="basket-type-selector">
-                        <input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF basket_type == "existing" || !basket_type %]checked="checked"[% END %]/><label for="basket-type-existing">[% MSG.basket_type_existing %]</label>
-                        <input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF basket_type == "new-order" %]checked="checked"[% END %]/><label for="basket-type-new-order">[% MSG.basket_type_new_order %]</label>
-                        <input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF basket_type == "new" %]checked="checked"[% END %]/><label for="basket-type-new">[% MSG.basket_type_new %]</label>
+                        <input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF order.basket_type == "existing" || !order.basket_type %]checked="checked"[% END %]/><label for="basket-type-existing">[% MSG.basket_type_existing %]</label>
+                        <input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF order.basket_type == "new-order" %]checked="checked"[% END %]/><label for="basket-type-new-order">[% MSG.basket_type_new_order %]</label>
+                        <input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF order.basket_type == "new" %]checked="checked"[% END %]/><label for="basket-type-new">[% MSG.basket_type_new %]</label>
                       </div>
-                      <div id="order-basket-select" [% IF basket_type != "existing" && basket_type %]style="display: none"[% END %]>[% PROCESS select list=baskets id="order-basket" name="order-basket" value=order.basketno valuekey="basketno" labelkey="basketname" emptyval=1 emptylabel=MSG.none required=1 %]</div>
-                      <div id="order-basket-name" [% IF basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname %]</label><input id="order-basketname" name="order-basketname" type="text" /></div>
-                      <div id="order-basket-order" [% IF basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname %] [% order.order_number %]</div>
+                      <div id="order-basket-select" [% IF order.basket_type != "existing" && order.basket_type %]style="display: none"[% END %]>[% PROCESS select list=baskets id="order-basket" name="order-basket" value=order.basketno valuekey="basketno" labelkey="basketname" emptyval=1 emptylabel=MSG.none required=1 %]</div>
+                      <div id="order-basket-name" [% IF order.basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname %]</label><input id="order-basketname" name="order-basketname" type="text" value="[% order.basketname | html %]" /></div>
+                      <div id="order-basket-order" [% IF order.basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname %] [% order.order_number %]</div>
                       [% IF order.basket_url %]
-                      <div id="order-basket-link"><a href="[% order.basket_url %]">[% MSG.goto_basket %]</a></div>
+                      <div id="order-basket-link"><a href="[% order.basket_url | html %]">[% MSG.goto_basket %]</a></div>
                       [% END %]
                     </td>
                   </tr>

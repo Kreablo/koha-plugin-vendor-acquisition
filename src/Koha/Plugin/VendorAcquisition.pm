@@ -29,14 +29,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.14";
+our $VERSION = "1.15";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2022-02-09",
+    date_updated    => "2022-05-17",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -336,6 +336,11 @@ EOF
         my $dvtable = $self->get_qualified_table_name('default_values');
         $dbh->do("ALTER IGNORE TABLE `$dvtable` ADD COLUMN budget_id INT DEFAULT NULL AFTER ccode");
         $dbh->do("ALTER IGNORE TABLE `$dvtable` ADD FOREIGN KEY (budget_id) REFERENCES aqbudgets(budget_id) ON UPDATE CASCADE ON DELETE SET NULL");
+    }
+
+    if (version_cmp($database_version, '1.15') < 0) {
+        my $otable = $self->get_qualified_table_name('order');
+        $dbh->do("ALTER IGNORE TABLE `$otable` ADD COLUMN basketname varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER basketno");
     }
 
     return $success;
@@ -671,12 +676,16 @@ sub vendor_order_receive {
                         $order->start_die_on_error;
                         if ($order->valid) {
                             $order->store;
+                        } else {
+                            die "Order is invalid!";
                         }
                         $already_processed = $order->imported;
                         if (!$already_processed) {
                             $order->process($lang, $self);
                             if ($order->valid) {
                                 $order->store;
+                            } else {
+                                die "Order is invalid!";
                             }
                         }
                         $order->stop_die_on_error;

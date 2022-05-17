@@ -103,48 +103,65 @@ sub new_from_json {
     return $self;
 }
 
-sub update_from_cgi {
-    my ($self, $cgi) = @_;
 
-    my $basketno;
+sub set_basketno {
+    my $self = shift;
 
-    my $basketType = $cgi->param('basket-type');
+    my $basket;
 
-    if ($basketType eq 'existing') {
-        $basketno = $cgi->param('order-basket');
-    } elsif ($basketType eq 'new-order' || $basketType eq 'new') {
-        my $basketname = $basketType eq 'new-order' ? $self->{order_number} : $cgi->param('order-basketname');
-        my @baskets = Koha::Acquisition::Baskets->search({ basketname => $basketname });
-        if ( scalar(@baskets) > 0) {
-            my $basket = $baskets[0];
-            $basketno = $basket->basketno;
+    if (defined $self->{basketno}) {
+        $basket = Koha::Acquisition::Baskets->find({ basketno => $self->{basketno}});
+        if (defined $basket && defined $self->{basketname} && $basket->basketname eq $self->{basketname}) {
+            return;
+        }
+    }
+
+    if (defined $self->{basketname}) {
+        my @baskets = Koha::Acquisition::Baskets->search({ basketname => $self->{basketname} });
+        if (scalar(@baskets) > 0) {
+            $basket = $baskets[0];
         } else {
-	    my $date = DateTime->now;
+            my $date = DateTime->now;
 
             my $basketinfo = {
-                basketname => $basketname,
+                basketname => $self->{basketname},
                 booksellerid => $self->booksellerid,
                 create_items => 'ordering',
-		creationdate => $date,
-		authorisedby => C4::Context->userenv->{'number'},
+                creationdate => $date,
+                authorisedby => C4::Context->userenv->{'number'},
                 billingplace => C4::Context->userenv->{'branch'}
             };
 
-            my $basket = Koha::Acquisition::Basket->new($basketinfo)->store;
-            $basketno = $basket->basketno;
+            $basket = Koha::Acquisition::Basket->new($basketinfo)->store;
         }
-    } else {
-        $basketno = undef;
+        $self->{basketno} = $basket->basketno;
+        $self->{basketname} = undef;
     }
 
-    if (defined $basketno && $basketno ne '') {
-        $self->{basketno} = $basketno;
+    if (defined $self->{basketno} && $self->{basketno} ne '') {
         my $url = URI->new('/cgi-bin/koha/acqui/basket.pl');
         $url->query_form('basketno' => $self->{basketno});
         $self->{basket_url} = $url;
     } else {
+        $self->_err("No basket for order!");
         $self->{basketno} = undef;
     }
+}
+
+sub update_from_cgi {
+    my ($self, $cgi) = @_;
+
+    my $basketType = $cgi->param('basket-type');
+    $self->{basket_type} = $basketType;
+
+    if ($basketType eq 'existing') {
+        $self->{basketno} = $cgi->param('order-basket');
+        $self->{basketname} = undef;
+    } elsif ($basketType eq 'new-order' || $basketType eq 'new') {
+        my $basketname = $basketType eq 'new-order' ? $self->{order_number} : $cgi->param('order-basketname');
+        $self->{basketname} = $basketname;
+    }
+
     my $budget_id = $cgi->param('order-budget');
     if (defined $budget_id && $budget_id ne '') {
         $self->{budget_id} = $budget_id;
@@ -348,7 +365,8 @@ SET order_number = ?,
     when_ordered = ?,
     order_note = ?,
     budget_id = ?,
-    basketno = ?
+    basketno = ?,
+    basketname = ?
 EOF
 
     my @binds = ($self->{order_number},
@@ -360,7 +378,8 @@ EOF
                  scalar(output_pref({ str => $self->{when_ordered}, dateformat => 'iso' })),
                  $self->{order_note},
                  $self->{budget_id},
-                 $self->{basketno}
+                 $self->{basketno},
+                 $self->{basketname}
         );
 
     if (defined $self->{order_id}) {
@@ -404,7 +423,7 @@ sub load {
     my $sql;
     my @binds;
 
-    my $cols = 'order_id, order_number, invoice_number, customer_number, api_version, continue_url, vendor, when_ordered, order_note, budget_id, basketno';
+    my $cols = 'order_id, order_number, invoice_number, customer_number, api_version, continue_url, vendor, when_ordered, order_note, budget_id, basketno, basketname';
 
     if (defined $self->{order_id}) {
         $sql = "SELECT $cols FROM `$ordertable` WHERE order_id = ?";
@@ -435,6 +454,20 @@ sub load {
         $self->{order_note} = $row->{order_note};
         $self->{budget_id} = $row->{budget_id};
         $self->{basketno} = $row->{basketno};
+        $self->{basketname} = $row->{basketname};
+
+        if (defined $self->{basketname}) {
+            my @baskets = Koha::Acquisition::Baskets->search({ basketname => $self->{basketname} });
+            if (scalar(@baskets) > 0) {
+                $self->{basket_type} = 'existing';
+                $self->{basketno} = $baskets[0]->basketno;
+            } elsif ($self->{basketname} eq $self->{order_number}) {
+                $self->{basket_type} = 'new-order';
+                $self->{basketname} = undef;
+            } else {
+                $self->{basket_type} = 'new';
+            }
+        }
 
         $self->load_records;
         if (defined $self->{when_ordered}) {
@@ -501,6 +534,8 @@ sub process {
     }
 
     $self->start_die_on_error;
+
+    $self->set_basketno;
 
     my $booksellerid = $self->booksellerid;
 
@@ -607,7 +642,7 @@ sub booksellerid {
 sub valid {
     my $self = shift;
 
-    return scalar($self->errors) == 0;
+    return scalar($self->all_errors) == 0;
 }
 
 sub parse_datetime {
