@@ -423,7 +423,7 @@ sub load {
     my $sql;
     my @binds;
 
-    my $cols = 'order_id, order_number, invoice_number, customer_number, api_version, continue_url, vendor, when_ordered, order_note, budget_id, basketno, basketname';
+    my $cols = 'order_id, order_number, invoice_number, customer_number, api_version, continue_url, vendor, when_ordered, order_note, budget_id, ordernumber, basketno, basketname';
 
     if (defined $self->{order_id}) {
         $sql = "SELECT $cols FROM `$ordertable` WHERE order_id = ?";
@@ -453,6 +453,7 @@ sub load {
         $self->{when_ordered} = dt_from_string($row->{when_ordered}, 'sql');
         $self->{order_note} = $row->{order_note};
         $self->{budget_id} = $row->{budget_id};
+        $self->{ordernumber} = $row->{ordernumber};
         $self->{basketno} = $row->{basketno};
         $self->{basketname} = $row->{basketname};
 

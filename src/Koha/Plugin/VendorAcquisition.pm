@@ -356,11 +356,12 @@ sub configure {
     my $vmtable = $self->get_qualified_table_name('vendormapping');
     my $dvtable = $self->get_qualified_table_name('default_values');
 
-    for my $method (Koha::Plugins::Methods->search(
-                         {
-                             plugin_class => $self->{'class'}
-                         }
-                    )) {
+    my $methods = Koha::Plugins::Methods->search(
+        {
+            plugin_class => $self->{'class'}
+        });
+
+    while (my $method = $methods->next) {
 
         # The plugin manager by default exposes every method it finds
         # in this package and in the parent package.  We clean this up
