@@ -8,7 +8,7 @@ implement the protocol of this plugin.
 
 The vendor must implement the following API for sending order data to Koha:
 
-https://docs.google.com/document/d/13EIWxTlN3Wo-8OtJuwu5serQu-dl-zdpK1qY5BNs0dk/edit
+https://docs.google.com/document/d/1aGHbyR0xz4E1JKO_CIg6drVVznRPTvXzt9Zwqyobiws/edit?usp=sharing
 
 
 ## Installation
