@@ -29,14 +29,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.15";
+our $VERSION = "1.16";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2022-05-17",
+    date_updated    => "2022-11-14",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
