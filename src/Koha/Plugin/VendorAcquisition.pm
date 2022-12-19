@@ -29,14 +29,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.16";
+our $VERSION = "1.16.1";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2022-11-14",
+    date_updated    => "2022-12-19",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -705,7 +705,11 @@ sub vendor_order_receive {
             if ($@) {
                 $order->{die_on_error} = 0;
 
-                $order->_err("Failed to commit order data: " . $@);
+                my $msg = "Failed to commit order data: " . $@;
+                my $logger = Koha::Logger->get;
+
+                $logger->error($msg);
+                push @{$order->{errors}}, $msg;
             }
 
         } else {
