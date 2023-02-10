@@ -27,7 +27,7 @@
     var remove_mapping = function remove_mapping (event) {
         event.preventDefault();
         event.stopPropagation();
-        var $e = $(event.currentTarget).parent().remove();
+        var $e = $(event.currentTarget).parent().parent().remove();
     };
 
     var update_id = function update_id ($template, name, idn) {

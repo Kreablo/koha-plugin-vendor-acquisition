@@ -39,6 +39,7 @@
    itemtype = "Item type",
    just_save = "Save order information",
    location = "Location",
+   misc_config = "Misc config",
    module_name = "Vendor Acquisition",
    none = "None",
    notforloan = "Not for loan",

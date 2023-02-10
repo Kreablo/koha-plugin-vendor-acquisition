@@ -15,15 +15,12 @@
 [% END %]
 [% INCLUDE 'doc-head-open.inc' %]
 <style>
-  button.vendor-mapping-remove {
-     float: rigth;
-  }
   button.save-button {
      font-size: larger;
   }
   .form-input {
      margin-top: 10px;
-     margin-botton: 10px;
+     margin-bottom: 10px;
   }
   .form-input th {
      text-align: left;
@@ -39,7 +36,7 @@ $stash->set('dump' => sub { return Dumper($_[0]) });
 $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK select %]
-<select name="[% name %]"[% IF defined(id) %] id="[% id %]"[% END %][% IF defined(class) %] class="[% class %]"[% END %][% IF required %]required[% END %]>
+<select name="[% name %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %]required[% END %]>
   [% IF emptyval %]
   <option value="" [% IF empty(value) %]selected="selected"[% END %]>[% IF defined(emptylabel) %][% emptylabel | html %][% ELSE %][% emptyval | html %][% END %]</option>
   [% END %]
@@ -57,204 +54,170 @@ $stash->set('defined' => sub { return defined $_[0]; });
 <div class="main container-fluid">
   <div class="row">
     <div class="col-sm-10 col-sm-push-2">
-      <main>
-        <h3>Koha:  [% MSG.module_name %]: [% MSG.configuration %]</h3>
+      <main class="page-section">
+        <div class="row">
+          <div class="col-xs-12">
+            <h3>Koha:  [% MSG.module_name %]: [% MSG.configuration %]</h3>
 
-        <h2>[% MSG.receive_url_heading %]</h2>
+            <div class="message dialog">
+              <h2>[% MSG.receive_url_heading %]</h2>
 
-        <p>[% MSG.receive_url_text %] <a href ="[% receive_url %]">[% receive_url %]</a></p>
-        <p>[% MSG.receive_url_info %]</p>
-        <form method="POST">
-          <input type="hidden" name="class" value="[% CLASS %]"/>
-          <input type="hidden" name="method" value="[% METHOD %]"/>
-          <input type="hidden" name="save" value="1" />
-          <input type="hidden" name="token" value="[% token %]"/>
-          <dl>
-            <dt><label for="record_match_rule">[% MSG.record_match_rule %]</label></dt>
-            <dd>
-              [% PROCESS select list=matchers name="record_match_rule" id="record_match_rule" emptyval="1" emptylabel=MSG.none valuekey="matcher_id" labelkey="code" value=record_match_rule %]
-              [% IF record_match_error %] <span class="error">[% MSG.record_match_error %]</span>[% END %]</dd>
-            <dt><label for="demomode">[% MSG.demo_mode %]</label></dt>
-            <dd><input type="checkbox" [% IF demomode %]checked="checked"[% END %] name="demomode" id="demomode" value="1"/></dd>
-          </dl>
-          <h3>[% MSG.vendor_mappings | html  %]</h3>
-          <div id="vendor-mapping-container">
-            [% FOREACH vm IN vendor_mappings %]
-            <div>
-              <hr/>
-              <button class="remove-vendor-mapping btn-warning"><span class="fa fa-close" /> [% MSG.remove | html %]</button>
-              <table class="form-input">
-                <tbody>
-                  <tr>
-                    <th>
-                      <label for="vendor-id-[% loop.index() %]">[% MSG.vendor_id | html %]</label>
-                    </th>
-                    <td>
-                      <input name="vendor-id" id="vendor-id-[% loop.index() %]" type="text" value="[% vm.vendor_id | html %]" required />
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>
-                      <label for="koha-vendor-id-[% loop.index() %]">[% MSG.koha_vendor_id | html %]</label>
-                    </th>
-                    <td>
-                      [% SET id_ = "koha-vendor-id-" _ loop.index() %]
-                      [% PROCESS select list=booksellers id=id_ name="koha-vendor-id" value=vm.koha_vendor_id valuekey="id" labelkey="name" %]
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <hr/>
+              <p>[% MSG.receive_url_text %] <a href ="[% receive_url %]">[% receive_url %]</a></p>
+              <p>[% MSG.receive_url_info %]</p>
             </div>
-            [% END %]
           </div>
-          <button id="add-vendor-mapping" class="btn-success"><span class="fa fa-plus" /> [% MSG.add_vendor_mapping | html %]</button>
-          <h3>[% MSG.default_item_values | html  %]</h3>
-          <div id="default-values-container">
-            [% FOREACH dv IN default_values %]
-            <div>
-              <hr/>
-              <button class="remove-default-values btn-warning"><span class="fa fa-close" /> [% MSG.remove | html %]</button>
-              <table class="form-input">
-                <tbody>
-                  <tr>
-                    <th>
-                      [% SET id_ = "customer-id-" _ loop.index() %]
-                      <label data-for="[% id_ %]">[% MSG.customer_id | html %]</label>
-                    </th>
-                    <td><input name="customer-id" id="[% id_ %]" type="text" value="[% dv.customer_id | html %]" required /></td>
-                  </tr>
-                  <tr>
-                    [% SET id_ = "default-budget-" _ loop.index() %]
-                    <th><label for="budget">[% MSG.default_budget | html %]</label></th>
-                    <td>[% PROCESS select list=budgets id=id_ name="default-budget_id" value=dv.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-itemtype-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_itemtype | html %]</label>
-                    </th>
-                    <td>[% PROCESS select list=itemtypes name="default-itemtype" id=id_ value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-ccode-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_ccode | html %]</label>
-                    </th>
-                    <td>[% PROCESS select list=ccodeav name="default-ccode" id=id_ value=dv.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-homebranch-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_homebranch | html %]</label>
-                    </th>
-                    <td>[% PROCESS select list=branches name="default-homebranch" id=id_ value=dv.homebranch emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-holdingbranch-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_holdingbranch %]</label>
-                    </th>
-                    <td>[% PROCESS select id=id_ list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none value=dv.holdingbranch valuekey="branchcode" labelkey="branchname" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-location-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_location %]</label>
-                    </th>
-                    <td>[% PROCESS select id=id_ list=locav name="default-location"  emptyval=1 emptylabel=MSG.none value=dv.location valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th>
-                      [% SET id_ = "default-notforloan-" _ loop.index() %]
-                      <label for="[% id_ %]">[% MSG.default_notforloan %]</label>
-                    </th>
-                    <td>[% PROCESS select id=id_ list=notforloanav name="default-notforloan" value=dv.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                </tbody>
-              </table>
-              <hr/>
+        </div>
+        <div class="row">
+          <form method="POST">
+            <div class="col-xs-12 col-sm-6 form-group">
+              <h3>[% MSG.misc_config | html %]</h3>
+              <input type="hidden" name="class" value="[% CLASS %]">
+              <input type="hidden" name="method" value="[% METHOD %]">
+              <input type="hidden" name="save" value="1">
+              <input type="hidden" name="token" value="[% token %]">
+              <dl>
+                <dt><label for="record_match_rule">[% MSG.record_match_rule %]</label></dt>
+                <dd>
+                  [% PROCESS select list=matchers name="record_match_rule" id="record_match_rule" emptyval="1" emptylabel=MSG.none valuekey="matcher_id" labelkey="code" value=record_match_rule %]
+                  [% IF record_match_error %] <span class="error">[% MSG.record_match_error %]</span>[% END %]</dd>
+                <dt><label for="demomode">[% MSG.demo_mode %]</label></dt>
+                <dd><input type="checkbox" [% IF demomode %]checked="checked"[% END %] name="demomode" id="demomode" value="1"></dd>
+              </dl>
+              <h3>[% MSG.vendor_mappings | html  %]</h3>
+              <div id="vendor-mapping-container">
+                [% FOREACH vm IN vendor_mappings %]
+                <div>
+                  <hr>
+                  <div class="pull-right"><button class="remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+                  <dl class="form-input">
+                    <dt><label for="vendor-id-[% loop.index() %]">[% MSG.vendor_id | html %]</label></dt
+                                                                                                      <dd><input name="vendor-id" id="vendor-id-[% loop.index() %]" type="text" value="[% vm.vendor_id | html %]" required></dd>
+                    <dt><label for="koha-vendor-id-[% loop.index() %]">[% MSG.koha_vendor_id | html %]</label></dt>
+                    <dd>
+                      [% SET id0 = "koha-vendor-id-" _ loop.index() %]
+                      [% PROCESS select list=booksellers id=id0 name="koha-vendor-id" value=vm.koha_vendor_id valuekey="id" labelkey="name" %]
+                    </dd>
+                  </dl>
+                  <hr>
+                </div>
+                [% END %]
+              </div>
+              <button id="add-vendor-mapping" class="btn-success"><span class="fa fa-plus"></span> [% MSG.add_vendor_mapping | html %]</button>
             </div>
-            [% END %]
-          </div>
-          <button id="add-default-values" class="btn-success"><span class="fa fa-plus" /> [% MSG.add_default_values | html %]</button>
-          <hr />
-          <button type="submit" value="save" class="btn-primary save-button" ><span class="fa fa-save" /> [% MSG.save_configuration | html %]</button>
-        </form>
-
-        [% IF errors %]
-        <hr />
-        <h4>[% MSG.errors | html  %]</h4>
-        <ul>
-          [% FOREACH error IN errors %]
-          <li><span class="error">[% error | html %]</span></li>
-          [% END %]
-        </ul>
-        [% END %]
-        [% IF save_success %]
-        <p id="save-success" class="text-success">[% MSG.save_success %]</p>
-        [% END %]
+            <div class="col-xs-12 col-sm-6">
+              <h3>[% MSG.default_item_values | html  %]</h3>
+              <div id="default-values-container"  class="form-group">
+                [% FOREACH dv IN default_values %]
+                <div>
+                  <hr>
+                  <div class="pull-right"><button class="remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+                  <dl class="form-input">
+                    <dt>
+                      [% SET id0 = "customer-id-" _ loop.index() %]
+                      <label data-for="[% id0 %]">[% MSG.customer_id | html %]</label>
+                    </dt>
+                    <dd><input name="customer-id" id="[% id0 %]" type="text" value="[% dv.customer_id | html %]" required></dd>
+                    <dt>
+                      [% SET id0 = "default-budget-" _ loop.index() %]
+                      <label for="budget">[% MSG.default_budget | html %]</label>
+                    </dt>
+                    <dd>[% PROCESS select list=budgets id=id0 name="default-budget_id" value=dv.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-itemtype-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_itemtype | html %]</label>
+                    </dt>
+                    <dd>[% PROCESS select list=itemtypes name="default-itemtype" id=id0 value=dv.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-ccode-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_ccode | html %]</label>
+                    </dt>
+                    <dd>[% PROCESS select list=ccodeav name="default-ccode" id=id0 value=dv.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-homebranch-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_homebranch | html %]</label>
+                    </dt>
+                    <dd>[% PROCESS select list=branches name="default-homebranch" id=id0 value=dv.homebranch emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-holdingbranch-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_holdingbranch %]</label>
+                    </dt>
+                    <dd>[% PROCESS select id=id0 list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none value=dv.holdingbranch valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-location-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_location %]</label>
+                    </dt>
+                    <dd>[% PROCESS select id=id0 list=locav name="default-location"  emptyval=1 emptylabel=MSG.none value=dv.location valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                    <dt>
+                      [% SET id0 = "default-notforloan-" _ loop.index() %]
+                      <label for="[% id0 %]">[% MSG.default_notforloan %]</label>
+                    </dt>
+                    <dd>[% PROCESS select id=id0 list=notforloanav name="default-notforloan" value=dv.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                  </dl>
+                  <hr>
+                </div>
+                [% END %]
+              </div>
+              <button id="add-default-values" class="btn-success"><span class="fa fa-plus"></span> [% MSG.add_default_values | html %]</button>
+            </div>
+            <div  class="form-group col-xs-12">
+              [% IF errors %]
+              <hr>
+              <div class="bg-danger text-danger dialog">
+                <h4>[% MSG.errors | html  %]</h4>
+                <ul>
+                  [% FOREACH error IN errors %]
+                  <li><span class="error">[% error | html %]</span></li>
+                  [% END %]
+                </ul>
+              </div>
+              [% END %]
+              [% IF save_success %]
+              <p id="save-success" class="text-success">[% MSG.save_success %]</p>
+              [% END %]
+              <hr>
+              <button type="submit" value="save" class="btn-primary save-button" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>
+            </div>
+          </form>
+        </div>
 
         <div style="display: none">
           <form>
-            <div id="vendor-mapping-input-template">
-              <hr/>
-              <button class="remove-vendor-mapping btn-warning"><span class="fa fa-close" /> [% MSG.remove | html %]</button>
-              <table class="form-input">
-                <tbody>
-                  <tr>
-                    <th><label data-for="vendor-id">[% MSG.vendor_id | html %] </label></th>
-                    <td><input name="vendor-id" type="text" required /></td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="koha-vendor-id">[% MSG.koha_vendor_id | html %] </label></th>
-                    <td><select name="koha-vendor-id">
-                        [% FOREACH v IN booksellers %]
-                        <option value="[% v.id | html%]">[% v.name | html %]</option>
-                        [% END %]
-                      </select>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <hr/>
+            <div id="vendor-mapping-input-template" class="form-group">
+              <hr>
+              <div class="pull-right"><button class="remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+              <dl class="form-input">
+                <dt><label data-for="vendor-id">[% MSG.vendor_id | html %] </label></dt>
+                <dd><input name="vendor-id" type="text" required></dd>
+                <dt><label data-for="koha-vendor-id">[% MSG.koha_vendor_id | html %] </label></dt>
+                <dd><select name="koha-vendor-id">
+                    [% FOREACH v IN booksellers %]
+                    <option value="[% v.id | html%]">[% v.name | html %]</option>
+                    [% END %]
+                  </select>
+                </dd>
+              </dl>
+              <hr>
             </div>
-            <div id="default-values-template">
-              <hr/>
-              <button class="remove-default-values btn-warning"><span class="fa fa-close" /> [% MSG.remove | html %]</button>
-              <table class="form-input">
-                <tbody>
-                  <tr>
-                    <th><label data-for="customer-id">[% MSG.customer_id | html %]</label></th>
-                    <td><input name="customer-id" type="text" value="" required /></td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-itemtype">[% MSG.default_itemtype %]</label></th>
-                    <td>[% PROCESS select list=itemtypes name="default-itemtype"  emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-ccode">[% MSG.default_ccode %]</label></th>
-                    <td>[% PROCESS select list=ccodeav name="default-ccode"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-homebranch">[% MSG.default_homebranch %]</label></th>
-                    <td>[% PROCESS select list=branches name="default-homebranch"  emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-holdingbranch">[% MSG.default_holdingbranch %]</label></th>
-                    <td>[% PROCESS select list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-location">[% MSG.default_location %]</label></th>
-                    <td>[% PROCESS select list=locav name="default-location"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label data-for="default-notforloan">[% MSG.default_notforloan %]</label></th>
-                    <td>[% PROCESS select list=notforloanav name="default-notforloan" emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                  </tr>
-                </tbody>
-              </table>
-              <hr/>
+            <div id="default-values-template" class="form-group">
+              <hr>
+              <div class="pull-right"><button class="remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+              <dl class="form-input">
+                <dt><label data-for="customer-id">[% MSG.customer_id | html %]</label></dt>
+                <dd><input name="customer-id" class="form-control" type="text" value="" required></dd>
+                <dt><label data-for="default-itemtype">[% MSG.default_itemtype %]</label></dt>
+                <dd>[% PROCESS select list=itemtypes id=undef name="default-itemtype"  emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=0 %]</dd>
+                <dt><label data-for="default-ccode">[% MSG.default_ccode %]</label></dt>
+                <dd>[% PROCESS select list=ccodeav id=undef name="default-ccode"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                <dt><label data-for="default-homebranch">[% MSG.default_homebranch %]</label></dt>
+                <dd>[% PROCESS select list=branches id=undef name="default-homebranch"  emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
+                <dt><label data-for="default-holdingbranch">[% MSG.default_holdingbranch %]</label></dt>
+                <dd>[% PROCESS select list=branches id=undef name="default-holdingbranch" emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
+                <dt><label data-for="default-location">[% MSG.default_location %]</label></dt>
+                <dd>[% PROCESS select list=locav id=undef name="default-location"  emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                <dt><label data-for="default-notforloan">[% MSG.default_notforloan %]</label></dt>
+                <dd>[% PROCESS select list=notforloanav id=undef name="default-notforloan" emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+              </dl>
+              <hr>
             </div>
           </form>
         </div>

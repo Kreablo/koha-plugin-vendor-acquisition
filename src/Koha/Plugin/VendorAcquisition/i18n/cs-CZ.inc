@@ -40,6 +40,7 @@
    just_save = "Uložit informace o objednávce",
    location = "Umístění",
    module_name = "Objednávání u dodavatelů",
+   misc_config = "Misc config",
    none = "Žádný",
    notforloan = "Není určeno k půjčování",
    order_already_processed = "Tato objednávka již byla zpracována.",

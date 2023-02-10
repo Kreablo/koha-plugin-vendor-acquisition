@@ -39,6 +39,7 @@
    itemtype = "Exemplartyp",
    location = "Hyllplacering",
    just_save = "Spara orderinformation",
+   misc_config = "Diverse",
    module_name = "Beställning hos bokleverantör",
    none = "Ingen",
    notforloan = "Ej för utlån",
