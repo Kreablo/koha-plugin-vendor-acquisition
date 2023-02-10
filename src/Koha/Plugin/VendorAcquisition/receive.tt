@@ -20,7 +20,7 @@ $stash->set('dump' => sub { return Dumper($_[0]) });
 $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK select %]
-<select name="[% name %]"[% IF defined(id) %] id="[% id %]"[% END %][% IF defined(class) %] class="[% class %]"[% END %][% IF required %]required[% END %]>
+<select name="[% name %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %]required[% END %]>
   [% IF emptyval %]
   <option value="" [% IF empty(value) %]selected="selected"[% END %]>[% IF defined(emptylabel) %][% emptylabel | html %][% ELSE %][% emptyval | html %][% END %]</option>
   [% END %]
@@ -31,14 +31,14 @@ $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK save_buttons %]
   [% IF order.imported() %]
-<div class="row">
-  <div class="col-xs-12 text-warning">
+<div class="col-xs-12">
+  <div id="save-buttons" class="text-warning save-buttons bg-warning">
     [% MSG.order_already_processed %]
   </div>
 </div>
   [% ELSE %]
-<div class="row save-buttons">
-  <div class="col-xs-12">
+<div class="col-xs-12">
+  <div id="save-buttons" class="save-buttons bg-success">
     <button type="submit" name="save" value="save" class="btn-primary" ><span class="fa fa-save" /> [% MSG.just_save | html %]</button>
     <button type="submit" name="save" value="process" class="btn-primary" ><span class="fa fa-arrow-right" /> [% MSG.save_and_process | html %]</button>
   </div>
@@ -58,14 +58,11 @@ $stash->set('defined' => sub { return defined $_[0]; });
 }
 .form-input {
    margin-top: 10px;
-   margin-botton: 10px;
+   margin-bottom: 10px;
 }
 .form-input th {
    text-align: left;
    max-width: 10em;
-}
-input.duplicate-biblio {
-   position: absolute;
 }
 label.duplicate-biblio {
    margin-left: 40px;
@@ -89,13 +86,38 @@ main h4, main h5, main h6 {
    margin-top: 7px;
    margin-bottom: 7px;
 }
-.save-buttons {
-   top: 0px;
-   position: sticky;
+#save-buttons {
    padding-top: 5px;
    padding-bottom: 5px;
-   background-color: #fff;
    z-index: 100;
+   border-radius: 5px;
+   border: solid #ccc 2px;
+}
+#save-buttons button {
+  margin: 10px;
+}
+#basket-type-selector {
+   margin-bottom: 10px;
+}
+#basket-type-selector input {
+   display: inline-block;
+}
+#basket-type-selector label {
+   display: inline-block;
+   margin-bottom: 0;
+   margin-left: 0.5em;
+   margin-right: 1em;
+}
+#ordered-records-list li:first-child {
+   border-top: none;
+}
+#ordered-records-list li {
+   border-top: 1px solid #aaa;
+}
+.ordered-items-list .ordered-item {
+   background-color: #faf3ed;
+   border-radius: 4px;
+   padding: 5px;
 }
 </style>
 [% INCLUDE 'doc-head-close.inc' %]
@@ -106,8 +128,8 @@ main h4, main h5, main h6 {
 <div class="main container-fluid">
   <div class="row">
     <div class="col-sm-10 col-sm-push-2">
-      <main>
-        <form action="[% save_url %]" method="POST">
+      <main class="page-section">
+        <form action="[% receive_url.path %]" method="POST">
           <input type="hidden" name="class" value="[% CLASS %]"/>
           <input type="hidden" name="method" value="[% METHOD %]"/>
           <input type="hidden" name="token" value="[% token %]"/>
@@ -116,7 +138,9 @@ main h4, main h5, main h6 {
             <div class="col-xs-12">
               <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order | html %]</h3>
               [% IF can_configure %]
-              <a href="[% configure_url %]"><span class="fa fa-cog"></span> [% MSG.configure %]</a>
+              <div class="bg-info dialog">
+                <a href="[% configure_url %]"><span class="fa fa-cog"></span> [% MSG.configure %]</a>
+              </div>
               [% END %]
               [% IF order.continue_url %]
               <div  class="continue-order-url">
@@ -124,87 +148,70 @@ main h4, main h5, main h6 {
               </div>
               [% END %]
               [% IF order.all_errors %]
-              <hr />
-              <h4>[% MSG.errors | html  %]</h4>
-              <ul>
-                [% FOREACH error IN order.all_errors %]
-                <li><span class="error">[% error | html %]</span></li>
-                [% END %]
-              </ul>
+              <div class="bg-danger text-danger">
+                <h4>[% MSG.errors | html  %]</h4>
+                <ul>
+                  [% FOREACH error IN order.all_errors %]
+                  <li><span class="error">[% error | html %]</span></li>
+                  [% END %]
+                </ul>
+              </div>
               [% END %]
-              <div>&nbsp;  [% IF save && !order.all_errors %]<span id="save-success" class="text-success">[% MSG.order_save_success %]</span>[% END %]</div>
-              <div>&nbsp;  [% IF order.imported %]<span id="already-processed" class="text-warning">[% MSG.order_already_processed %]</span>[% END %]</div>
+              [% IF save && !order.all_errors %]<div class="bg-success">&nbsp;  <span id="save-success" class="text-success">[% MSG.order_save_success %]</span></div>[% END %]
+              [% IF order.imported %]<div class="bg-warning">&nbsp;  <span id="already-processed" class="text-warning">[% MSG.order_already_processed %]</span></div>[% END %]
               [% IF order.warnings %]
-              <hr />
-              <h4>[% MSG.warnings | html %]</h4>
-              <ul>
-                [% FOREACH warning IN order.warnings %]
-                <li><span class="text-warning">[% warning | html %]</span></li>
-                [% END %]
-              </ul>
+              <div class="bg-warning text-warning">
+                <h4>[% MSG.warnings | html %]</h4>
+                <ul>
+                  [% FOREACH warning IN order.warnings %]
+                  <li><span class="text-warning">[% warning | html %]</span></li>
+                  [% END %]
+                </ul>
+              </div>
               [% END %]
-              <hr />
-              <h4>[% MSG.order_information | html %]</h4>
-              <table id="order_information_table">
-                <tbody>
-                  <tr>
-                    <th>[% MSG.customer_number | html %]</th>
-                    <td>[% order.customer_number | html %]</td>
-                  </tr>
-                  <tr>
-                    <th>[% MSG.order_number | html %]</th>
-                    <td>[% order.order_number | html %]</td>
-                  </tr>
-                  <tr>
-                    <th>[% MSG.when_ordered | html %]</th>
-                    <td>[% order.when_ordered_str | html %]</td>
-                  </tr>
-                  <tr>
-                    <th>[% MSG.vendor | html %]</th>
-                    <td>[% order.vendor | html %]</td>
-                  </tr>
-                  <tr>
-                    <th>[% MSG.order_note | html %]</th>
-                    <td>[% order.order_note | html %]</td>
-                  </tr>
-                  <tr>
-                    <th>[% MSG.invoice_number | html %]</th>
-                    <td>[% order.invoice_number | html %]</td>
-                  </tr>
-                  <tr>
-                    <th><label for="order-budget">[% MSG.budget | html %]</label></th>
-                    <td>[% PROCESS select list=budgets id="order-budget" name="order-budget" value=order.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=1 %]</td>
-                  </tr>
-                  <tr>
-                    <th><label for="order-basket">[% MSG.basket | html %]</label></th>
-                    <td>
-                      <div id="basket-type-selector">
-                        <input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF order.basket_type == "existing" || !order.basket_type %]checked="checked"[% END %]/><label for="basket-type-existing">[% MSG.basket_type_existing %]</label>
-                        <input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF order.basket_type == "new-order" %]checked="checked"[% END %]/><label for="basket-type-new-order">[% MSG.basket_type_new_order %]</label>
-                        <input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF order.basket_type == "new" %]checked="checked"[% END %]/><label for="basket-type-new">[% MSG.basket_type_new %]</label>
-                      </div>
-                      <div id="order-basket-select" [% IF order.basket_type != "existing" && order.basket_type %]style="display: none"[% END %]>[% PROCESS select list=baskets id="order-basket" name="order-basket" value=order.basketno valuekey="basketno" labelkey="basketname" emptyval=1 emptylabel=MSG.none required=1 %]</div>
-                      <div id="order-basket-name" [% IF order.basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname %]</label><input id="order-basketname" name="order-basketname" type="text" value="[% order.basketname | html %]" /></div>
-                      <div id="order-basket-order" [% IF order.basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname %] [% order.order_number %]</div>
-                      [% IF order.basket_url %]
-                      <div id="order-basket-link"><a href="[% order.basket_url | html %]">[% MSG.goto_basket %]</a></div>
-                      [% END %]
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              </div>
           </div>
-          <hr />
-          [% PROCESS save_buttons %]
           <div class="row">
-            <div class="col-xs-12">
+            <div class="col-xs-12 col-md-4">
+              <h4>[% MSG.order_information | html %]</h4>
+              <dl id="order_information_table" class="form-group form-input">
+                <dt>[% MSG.customer_number | html %]</dt>
+                <dd>[% order.customer_number | html %]</dd>
+                <dt>[% MSG.order_number | html %]</dt>
+                <dd>[% order.order_number | html %]</dd>
+                <dt>[% MSG.when_ordered | html %]</dt>
+                <dd>[% order.when_ordered_str | html %]</dd>
+                <dt>[% MSG.vendor | html %]</dt>
+                <dd>[% order.vendor | html %]</dd>
+                <dt>[% MSG.order_note | html %]</dt>
+                <dd>[% order.order_note | html %]</dd>
+                <dt>[% MSG.invoice_number | html %]</dt>
+                <dd>[% order.invoice_number | html %]</dd>
+                <dt><label for="order-budget">[% MSG.budget | html %]</label></dt>
+                <dd>[% PROCESS select list=budgets id="order-budget" class="" name="order-budget" value=order.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=1 %]</dd>
+                <dt><label for="order-basket">[% MSG.basket | html %]</label></dt>
+                <dd>
+                  <div id="basket-type-selector">
+                    <label for="basket-type-existing"><input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF order.basket_type == "existing" || !order.basket_type %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_existing %]</label>
+                    <label for="basket-type-new-order"><input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF order.basket_type == "new-order" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new_order %]</label>
+                    <label for="basket-type-new"><input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF order.basket_type == "new" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new %]</label>
+                  </div>
+                  <div id="order-basket-select" [% IF order.basket_type != "existing" && order.basket_type %]style="display: none"[% END %]>[% PROCESS select list=baskets id="order-basket" class="" name="order-basket" value=order.basketno valuekey="basketno" labelkey="basketname" emptyval=1 emptylabel=MSG.none required=1 %]</div>
+                  <div id="order-basket-name" [% IF order.basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname %]</label><input id="order-basketname" name="order-basketname" type="text" value="[% order.basketname | html %]"></div>
+                  <div id="order-basket-order" [% IF order.basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname %] [% order.order_number %]</div>
+                  [% IF order.basket_url %]
+                  <div id="order-basket-link"><a href="[% order.basket_url | html %]">[% MSG.goto_basket %]</a></div>
+                  [% END %]
+                </dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-md-8">
               <h4>[% MSG.ordered_items | html %]</h4>
-              <ul>
+              <ul id="ordered-records-list">
                 [% FOREACH record IN order.records %]
                 <li>
                   [% IF record.warnings %]
-                  <hr />
+                  <hr>
                   <h5>[% MSG.warnings | html %]</h5>
                   <ul>
                     [% FOREACH warning IN record.warnings %]
@@ -214,79 +221,70 @@ main h4, main h5, main h6 {
                   [% END %]
                   [% IF record.valid %]
                   <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down" /></a></h5>
-                  <div id="record-[% record.element_id %]" class="collapse">
+                  <div id="record-[% record.element_id %]" class="collapse form-group">
                     <div class="row">
-                      <div class="col-xs-12 col-md-6 col-lg-4">
-                        <table>
-                          <tbody>
-                            <tr>
-                              <th>[% MSG.record_note %]</th>
-                              <td>[% record.note %]
-                            </tr>
-                            <tr>
-                              <th>[% MSG.biblioid_standard | html %]</th>
-                              <td>[% record.biblioid_standard | html %]</td>
-                            </tr>
-                            <tr>
-                              <th>[% MSG.biblioid | html %]</th>
-                              <td>[% record.biblioid | html %]</td>
-                            </tr>
-                          </tbody>
-                        </table>
+                      <div class="col-xs-6 col-md-6">
+                        <dl class="form-input">
+                          <dt>[% MSG.record_note %]</dt>
+                          <dd>[% record.note %]</dd>
+                          <dt>[% MSG.biblioid_standard | html %]</dt>
+                          <dd>[% record.biblioid_standard | html %]</dd>
+                          <dt>[% MSG.biblioid | html %]</dt>
+                          <dd>[% record.biblioid | html %]</dd>
+                        </dl>
                         <div>
                           [% record.record_display %]
                         </div>
                       </div>
-                      <div class="col-xs-12 col-md-6 col-lg-4">
-                        <h5>[% MSG.items | html %]</h5>
+                      <div class="col-xs-6 ordered-items-list">
                         [% FOREACH record_item IN record.items %]
+                        [% IF loop.index != 0 %]
+                        <div class="row">
+                          <div class="col-xs-12"><hr></div>
+                        </div>
+                        [% END %]
                         <div class="row">
                           <div class="col-xs-12">
-                            <h6>[% MSG.item_no %] [% loop.index() + 1 %]</h6>
-                            <table class="form-input">
-                              <tbody>
-                                <tr>
+                            <div class="ordered-item">
+                              <dl class="form-input">
+                                <dt>
                                   [% SET id_ = "notforloan-" _ record_item.item_id %]
                                   [% SET name_ = "notforloan-" _ record_item.item_id %]
-                                  <th><label for="[% id_ %]">[% MSG.notforloan %]</label></th>
-                                  <td>[% PROCESS select id=id_ name=name_ list=notforloanav value=record_item.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0  %]</td>
-                                </tr>
-                                <tr>
+                                  <label for="[% id_ %]">[% MSG.notforloan %]</label>
+                                </dt>
+                                <dd>[% PROCESS select id=id_ class="" name=name_ list=notforloanav value=record_item.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0  %]</dd>
+                                <dt>
                                   [% SET id_ = "itemtype-" _ record_item.item_id %]
                                   [% SET name_ = "itemtype-" _ record_item.item_id %]
-                                  <th><label for="[% id_ %]">[% MSG.itemtype %]</label></th>
-                                  <td>[% PROCESS select id=id_ name=name_ list=itemtypes value=record_item.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=1 %]</td>
-                                </tr>
-                                <tr>
+                                  <label for="[% id_ %]">[% MSG.itemtype %]</label>
+                                </dt>
+                                <dd>[% PROCESS select id=id_ class="" name=name_ list=itemtypes value=record_item.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=1 %]</dd>
+                                <dt>
                                   [% SET id_ = "ccode-" _ record_item.item_id %]
                                   [% SET name_ = "ccode-" _ record_item.item_id %]
-                                  <th><label for="[% id_ %]">[% MSG.ccode %]</label></th>
-                                  <td>[% PROCESS select id=id_ name=name_ list=ccodeav value=record_item.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                                </tr>
-                                <tr>
+                                  <label for="[% id_ %]">[% MSG.ccode %]</label>
+                                </dt>
+                                <dd>[% PROCESS select id=id_ class="" name=name_ list=ccodeav value=record_item.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                                <dt>
                                   [% SET id_ = "location-" _ record_item.item_id %]
                                   [% SET name_ = "location-" _ record_item.item_id %]
-                                  <th><label for="[% id_ %]">[% MSG.location %]</label></th>
-                                  <td>[% PROCESS select id=id_ name=name_ list=locav value=record_item.location emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</td>
-                                </tr>
-                                <tr>
-                                  <th>
-                                    [% SET id_ = "homebranch-" _ record_item.item_id %]
-                                    [% SET name_ = "homebranch-" _ record_item.item_id %]
-                                    <label for="[% id_ %]">[% MSG.homebranch | html %]</label>
-                                  </th>
-                                  <td>[% PROCESS select list=branches name=name_ id=id_ value=record_item.homebranch emptyval="1" emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=1 %]</td>
-                                </tr>
-                                <tr>
-                                  <th>
-                                    [% SET id_ = "holdingbranch-" _ record_item.item_id %]
-                                    [% SET name_ = "holdingbranch-" _ record_item.item_id %]
-                                    <label for="[% id_ %]">[% MSG.holdingbranch %]</label>
-                                  </th>
-                                  <td>[% PROCESS select id=id_ list=branches name=name_ emptyval=1 emptylabel=MSG.none value=record_item.holdingbranch valuekey="branchcode" labelkey="branchname" required=1 %]</td>
-                                </tr>
-                              </tbody>
-                            </table>
+                                  <label for="[% id_ %]">[% MSG.location %]</label>
+                                </dt>
+                                <dd>[% PROCESS select id=id_ class="" name=name_ list=locav value=record_item.location emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
+                                <dt>
+                                  [% SET id_ = "homebranch-" _ record_item.item_id %]
+                                  [% SET name_ = "homebranch-" _ record_item.item_id %]
+                                  <label for="[% id_ %]">[% MSG.homebranch | html %]</label>
+                                </dt>
+                                <dd>[% PROCESS select list=branches name=name_ id=id_ class="" value=record_item.homebranch emptyval="1" emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=1 %]</dd>
+                                <dt>
+                                  [% SET id_ = "holdingbranch-" _ record_item.item_id %]
+                                  [% SET name_ = "holdingbranch-" _ record_item.item_id %]
+                                  <label for="[% id_ %]">[% MSG.holdingbranch %]</label>
+                                </dt>
+                                <dd>[% PROCESS select id=id_ class="" list=branches name=name_ emptyval=1 emptylabel=MSG.none value=record_item.holdingbranch valuekey="branchcode" labelkey="branchname" required=1 %]</dd>
+                              </dl>
+                            </div>
                           </div>
                         </div>
                         [% END %]
@@ -297,16 +295,14 @@ main h4, main h5, main h6 {
                         <h5>[% MSG.records | html %]</h5>
                         [% SET name_ = "duplicate-biblionumber-" _ record.record_id %]
                         [% SET id_ = "dup-none-" _ record.element_id %]
-                        <input id="[% id_ %]" type="radio" class="duplicate-biblio" value="" name="[% name_ %]" [% IF !record.merge_biblionumber %] checked="checked"[% END %]/>
-                        <label class="duplicate-biblio" for="[% id_ %]">[% MSG.do_not_use_existing %]</label>
+                        <label class="duplicate-biblio" for="[% id_ %]"><input id="[% id_ %]" type="radio" class="duplicate-biblio" value="" name="[% name_ %]" [% IF !record.merge_biblionumber %] checked="checked"[% END %]>&nbsp;[% MSG.do_not_use_existing %]</label>
                         <h6>[% MSG.duplicates | html %]</h6>
                         [% FOREACH duplicate IN record.duplicates %]
                         <div class="row">
                           <div class="col-xs-12">
-                            <hr />
+                            <hr>
                             [% SET id_ = "dup-" _ duplicate.biblionumber _ "-" _ record.element_id %]
-                            <input class="duplicate-biblio" id="[% id_ %]" type="radio" value="[% duplicate.biblionumber %]" name="[% name_ %]"[% IF record.merge_biblionumber == duplicate.biblionumber %] checked="checked"[% END %]/>
-                            <label class="duplicate-biblio" for="[% id_ %]"><div class="duplicate-biblio-container">[% duplicate.record_display  %]</div></label>
+                            <label class="duplicate-biblio" for="[% id_ %]"><input class="duplicate-biblio" id="[% id_ %]" type="radio" value="[% duplicate.biblionumber %]" name="[% name_ %]"[% IF record.merge_biblionumber == duplicate.biblionumber %] checked="checked"[% END %]>&nbsp;<div class="duplicate-biblio-container">[% duplicate.record_display  %]</div></label>
                           </div>
                         </div>
                         [% END %]
@@ -317,17 +313,22 @@ main h4, main h5, main h6 {
                     </div>
                   </div>
                   [% ELSE %]
-                  <h5>[% MSG.errors | html  %]</h5>
-                  <ul>
-                    [% FOREACH error IN record.all_errors() %]
-                    <li><span class="error">[% error | html %]</span></li>
-                    [% END %]
-                  </ul>
+                  <div class="bg-danger text-danger">
+                    <h5>[% MSG.errors | html  %]</h5>
+                    <ul>
+                      [% FOREACH error IN record.all_errors() %]
+                      <li><span class="error">[% error | html %]</span></li>
+                      [% END %]
+                    </ul>
+                  </div>
                   [% END %]
                 </li>
                 [% END %]
               </ul>
             </div>
+          </div>
+          <div class="row">
+            [% PROCESS save_buttons %]
           </div>
         </form>
       </main>
