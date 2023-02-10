@@ -100,6 +100,7 @@ sub install {
    when_ordered TIMESTAMP,
    order_note LONGTEXT,
    basketno INT(11) DEFAULT NULL,
+   basketname varchar(50) DEFAULT NULL,
    budget_id INT DEFAULT NULL,
    imported TINYINT(1) DEFAULT 0,
    UNIQUE KEY (vendor, order_number, customer_number),
@@ -290,6 +291,9 @@ sub uninstall {
     my $recordtable = $self->get_qualified_table_name('record');
     $dbh->do("DROP TABLE IF EXISTS `$recordtable`");
 
+    my $order_json = $self->get_qualified_table_name('order_json');
+    $dbh->do("DROP TABLE IF EXISTS `$order_json`");
+
     my $ordertable = $self->get_qualified_table_name('order');
     $dbh->do("DROP TABLE IF EXISTS `$ordertable`");
 
@@ -298,9 +302,6 @@ sub uninstall {
 
     my $dvtable = $self->get_qualified_table_name('default_values');
     $dbh->do("DROP TABLE IF EXISTS `$dvtable`");
-
-    my $order_json = $self->get_qualified_table_name('order_json');
-    $dbh->do("DROP TABLE IF EXISTS `$order_json`");
 
     return $success;
 }
@@ -720,7 +721,7 @@ sub vendor_order_receive {
             $order->{errors} = ('Invalid security token.');
         }
 
-        if ($token_success && $order->valid) {
+        if ($token_success && $order && (!defined $order->{errors} || !@{$order->{errors}}) && $order->valid) {
             my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
                 template_name   => $self->mbf_path('receive.tt'),
                 query => $cgi,
