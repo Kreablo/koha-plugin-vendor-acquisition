@@ -12,5 +12,4 @@ src/Koha/Plugin/VendorAcquisition/OrderItem.pm
 src/Koha/Plugin/VendorAcquisition/OrderRecord.pm
 src/Koha/Plugin/VendorAcquisition/receive-test.tt
 src/Koha/Plugin/VendorAcquisition/receive.js
-src/Koha/Plugin/VendorAcquisition/receive.pl
 src/Koha/Plugin/VendorAcquisition/receive.tt

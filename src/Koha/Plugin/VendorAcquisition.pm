@@ -29,14 +29,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.16.1";
+our $VERSION = "1.17";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2022-12-19",
+    date_updated    => "2023-02-10",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -655,7 +655,7 @@ sub vendor_order_receive {
         my $save = 0;
         my $already_processed = 0;
 
-        if ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token) {
+        if ($token_success) {
 
             my $dbh   = C4::Context->dbh;
             $dbh->{RaiseError} = 1;
@@ -713,6 +713,9 @@ sub vendor_order_receive {
             }
 
         } else {
+            my $logger = Koha::Logger->get;
+
+            $logger->warn('Invalid security token.  cgi->param: "' . $cgi->param('token') . '" url_param: "' . $cgi->url_param('token') . '" token: "' . $token . '"');
             $order->{errors} = ('Invalid security token.');
         }
 
@@ -721,7 +724,9 @@ sub vendor_order_receive {
                 template_name   => $self->mbf_path('receive.tt'),
                 query => $cgi,
                 type => "intranet",
-                debug => $debug
+                debug => $debug,
+                authnotrequired => 1,
+                flagsrequired   => {}
             });
 
             if ($cgi->param('save') eq 'process' && $save) {
@@ -781,7 +786,9 @@ sub vendor_order_receive {
             template_name   => $self->mbf_path('receive-test.tt'),
             query => $cgi,
             type => "intranet",
-            debug => $debug
+            debug => $debug,
+            authnotrequired => 1,
+            flagsrequired   => {}
          });
 
         $template->param(
@@ -804,7 +811,9 @@ sub vendor_order_receive {
             template_name   => $self->mbf_path('order_failed.tt'),
             query => $cgi,
             type => "intranet",
-            debug => $debug
+            debug => $debug,
+            authnotrequired => 1,
+            flagsrequired   => {}
          });
 
       $template->param(

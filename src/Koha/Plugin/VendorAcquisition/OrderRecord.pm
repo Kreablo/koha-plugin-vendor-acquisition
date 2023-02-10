@@ -19,13 +19,14 @@ package Koha::Plugin::VendorAcquisition::OrderRecord;
 use strict;
 use C4::XSLT;
 use C4::Matcher;
-use C4::Biblio qw( GetMarcBiblio AddBiblio GetBiblioData );
+use C4::Biblio qw( AddBiblio GetBiblioData );
 use Koha::Plugin::VendorAcquisition::OrderItem;
 use MARC::File::XML;
 use Koha::Acquisition::Currencies;
 use Koha::DateUtils qw( dt_from_string output_pref );
 use Encode;
 use utf8;
+require Koha::Biblios;
 
 my $element_id = 1;
 
@@ -115,12 +116,12 @@ sub prepare_record {
             score => $d->{score},
             selected => 0
         };
-        my $record = GetMarcBiblio({ biblionumber => $d->{record_id} });
-
-        if (!$record) {
+        my $biblio = Koha::Biblios->find($d->{record_id});
+        if (!$biblio) {
             $self->_warn("Failed to load matching record " . $d->{record_id});
             next;
         }
+        my $record = $biblio->metadata->record;
 
         if ($is2111) {
             $duplicate->{record_display} = C4::XSLT::XSLTParse4Display({
