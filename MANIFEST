@@ -3,6 +3,7 @@ MANIFEST			This list of files
 src/Koha/Plugin/VendorAcquisition.pm
 src/Koha/Plugin/VendorAcquisition/config.js
 src/Koha/Plugin/VendorAcquisition/configure.tt
+src/Koha/Plugin/VendorAcquisition/i18n/cs-CZ.inc
 src/Koha/Plugin/VendorAcquisition/i18n/default.inc
 src/Koha/Plugin/VendorAcquisition/i18n/sv-SE.inc
 src/Koha/Plugin/VendorAcquisition/Order.pm
