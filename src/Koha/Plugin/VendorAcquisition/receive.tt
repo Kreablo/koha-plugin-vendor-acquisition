@@ -283,6 +283,12 @@ main h4, main h5, main h6 {
                                   <label for="[% id_ %]">[% MSG.holdingbranch %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" list=branches name=name_ emptyval=1 emptylabel=MSG.none value=record_item.holdingbranch valuekey="branchcode" labelkey="branchname" required=1 %]</dd>
+                                <dt>
+                                  [% SET id_ = "itemcallnumber-" _ record_item.item_id %]
+                                  [% SET name = "itemcallnumber-" _ record_item.item_id %]
+                                  <label for="[% id_ %]">[% MSG.callnumber %]</label>
+                                </dt>
+                                <dd><input id="[% id_ %]" class="form-control" name="[% name %]" type="text" value="[% record_item.itemcallnumber %]"></dd>
                               </dl>
                             </div>
                           </div>

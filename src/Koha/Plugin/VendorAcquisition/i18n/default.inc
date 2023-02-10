@@ -10,6 +10,7 @@
    biblioid = "Record identity",
    biblioid_standard = "Standard for record identity",
    budget = "Budget",
+   callnumber = "Call number",
    ccode = "Collection code",
    configuration = "Configuration",
    customer_number = "Customer number",

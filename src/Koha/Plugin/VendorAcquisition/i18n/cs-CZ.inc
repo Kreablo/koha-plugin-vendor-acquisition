@@ -10,6 +10,7 @@
    biblioid = "ID záznamu",
    biblioid_standard = "Standard pro identitu záznamu",
    budget = "Rozpočet",
+   callnumber = "Call number",
    ccode = "Kód sbírky",
    configuration = "Konfigurace",
    customer_number = "Číslo zákazníka",

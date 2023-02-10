@@ -10,6 +10,7 @@
    biblioid = "Postidentitet",
    biblioid_standard = "Standard för postidentitet",
    budget = "Budgetställe",
+   callnumber = "Hyllsignum",
    ccode = "Avdelning",
    configuration = "Konfiguration"
    configure = "Konfigurera beställningsplugin",
