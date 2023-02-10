@@ -389,9 +389,10 @@ sub configure {
         $record_match_rule = $self->retrieve_data('record_match_rule');
     }
 
-    my $booksellers = Koha::Acquisition::Booksellers->search();
+    my $booksellers = Koha::Acquisition::Booksellers->search(undef, { order_by => { -asc => ['name'] }});
 
     my @matchers = C4::Matcher::GetMatcherList();
+    @matchers = sort { $a->{code} cmp $b->{code} } @matchers;
 
     my $matcher_error = 0;
 
@@ -588,11 +589,11 @@ sub configure {
         vendor_mappings => \@vendor_mappings,
         errors => \@errors,
         save_success => $save_success,
-        notforloanav => Koha::AuthorisedValues->search({ category => 'NOT_LOAN' })->unblessed,
-        locav => Koha::AuthorisedValues->search({ category => 'LOC' })->unblessed,
-        ccodeav => Koha::AuthorisedValues->search({ category => 'CCODE' })->unblessed,
-        branches => Koha::Libraries->search()->unblessed,
-        itemtypes => Koha::ItemTypes->search()->unblessed,
+        notforloanav => Koha::AuthorisedValues->search({ category => 'NOT_LOAN' }, { order_by => { -asc => ['lib'] } })->unblessed,
+        locav => Koha::AuthorisedValues->search({ category => 'LOC' }, { order_by => { -asc => ['lib'] }})->unblessed,
+        ccodeav => Koha::AuthorisedValues->search({ category => 'CCODE' }, { order_by => { -asc => ['lib'] }})->unblessed,
+        branches => Koha::Libraries->search(undef, { order_by => { -asc => ['branchname'] }})->unblessed,
+        itemtypes => Koha::ItemTypes->search(undef, { order_by => { -asc => ['description'] }})->unblessed,
         default_values => \@default_values,
         can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'})
         );
@@ -611,7 +612,7 @@ sub budget_list {
     }
 
     my $query = <<'EOF';
-SELECT budget_id, budget_name FROM aqbudgets JOIN aqbudgetperiods USING (budget_period_id) WHERE budget_period_active;
+SELECT budget_id, budget_name FROM aqbudgets JOIN aqbudgetperiods USING (budget_period_id) WHERE budget_period_active ORDER BY budget_name ASC;
 EOF
 
     my $sth = $dbh->prepare($query);
@@ -741,13 +742,13 @@ sub vendor_order_receive {
                     plugin_dir => $self->bundle_path,
                     receive_url => $receive_url,
                     receive_js => $self->mbf_path('receive.js'),
-                    notforloanav => Koha::AuthorisedValues->search({ category => 'NOT_LOAN' })->unblessed,
-                    locav =>  Koha::AuthorisedValues->search({ category => 'LOC' })->unblessed,
-                    ccodeav => Koha::AuthorisedValues->search({ category => 'CCODE' })->unblessed,
-                    branches => Koha::Libraries->search()->unblessed,
+                    notforloanav => Koha::AuthorisedValues->search({ category => 'NOT_LOAN' }, { order_by => { -asc => ['lib'] } })->unblessed,
+                    locav =>  Koha::AuthorisedValues->search({ category => 'LOC' }, { order_by => { -asc => ['lib'] } })->unblessed,
+                    ccodeav => Koha::AuthorisedValues->search({ category => 'CCODE' }, { order_by => { -asc => ['lib'] } })->unblessed,
+                    branches => Koha::Libraries->search(undef, { order_by => { -asc => ['branchname'] } })->unblessed,
                     budgets => $budgets,
-                    baskets => Koha::Acquisition::Baskets->search()->unblessed,
-                    itemtypes => Koha::ItemTypes->search()->unblessed,
+                    baskets => Koha::Acquisition::Baskets->search(undef, { order_by => { -asc => ['basketname'] } })->unblessed,
+                    itemtypes => Koha::ItemTypes->search(undef, { order_by => { -asc => ['description'] } })->unblessed,
                     configure_url => $configure_url,
                     CLASS       => $self->{'class'},
                     METHOD      => scalar $self->{'cgi'}->param('method'),
