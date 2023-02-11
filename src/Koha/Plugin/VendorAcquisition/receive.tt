@@ -87,8 +87,7 @@ main h4, main h5, main h6 {
    margin-bottom: 7px;
 }
 #save-buttons {
-   padding-top: 5px;
-   padding-bottom: 5px;
+   padding: 5px;
    z-index: 100;
    border-radius: 5px;
    border: solid #ccc 2px;
@@ -116,6 +115,10 @@ main h4, main h5, main h6 {
 }
 .ordered-items-list .ordered-item {
    background-color: #faf3ed;
+   border-radius: 4px;
+   padding: 5px;
+}
+div.message-box {
    border-radius: 4px;
    padding: 5px;
 }
@@ -152,19 +155,19 @@ main h4, main h5, main h6 {
                 <h4>[% MSG.errors | html  %]</h4>
                 <ul>
                   [% FOREACH error IN order.all_errors %]
-                  <li><span class="error">[% error | html %]</span></li>
+                  <li><span class="error"><span class="fa fa-exclamation-circle"></span>&nbsp;[% error | html %]</span></li>
                   [% END %]
                 </ul>
               </div>
               [% END %]
-              [% IF save && !order.all_errors %]<div class="bg-success">&nbsp;  <span id="save-success" class="text-success">[% MSG.order_save_success %]</span></div>[% END %]
-              [% IF order.imported %]<div class="bg-warning">&nbsp;  <span id="already-processed" class="text-warning">[% MSG.order_already_processed %]</span></div>[% END %]
+              [% IF save && !order.all_errors %]<div class="message-box bg-success text-success"><span class="fa fa-check"></span>&nbsp;<span id="save-success">[% MSG.order_save_success %]</span></div>[% END %]
+              [% IF order.imported %]<div class="message-box bg-warning text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed %]</span></div>[% END %]
               [% IF order.warnings %]
               <div class="bg-warning text-warning">
                 <h4>[% MSG.warnings | html %]</h4>
                 <ul>
                   [% FOREACH warning IN order.warnings %]
-                  <li><span class="text-warning">[% warning | html %]</span></li>
+                  <li><span class="text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;[% warning | html %]</span></li>
                   [% END %]
                 </ul>
               </div>
@@ -289,6 +292,12 @@ main h4, main h5, main h6 {
                                   <label for="[% id_ %]">[% MSG.callnumber %]</label>
                                 </dt>
                                 <dd><input id="[% id_ %]" class="form-control" name="[% name %]" type="text" value="[% record_item.itemcallnumber %]"></dd>
+                                <dt>
+                                  [% SET id_ = "budget_id-" _ record_item.item_id %]
+                                  [% SET name = "budget_id-" _ record_item.item_id %]
+                                  <label for="[% id_ %]">[% MSG.itembudget %]</label>
+                                </dt>
+                                <dd>[% PROCESS select list=budgets id=id_ class="" name=name value=record_item.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=0 %]</dd>
                               </dl>
                             </div>
                           </div>
@@ -323,7 +332,7 @@ main h4, main h5, main h6 {
                     <h5>[% MSG.errors | html  %]</h5>
                     <ul>
                       [% FOREACH error IN record.all_errors() %]
-                      <li><span class="error">[% error | html %]</span></li>
+                      <li><span class="error"><span class="fa fa-exclamation-circle"></span>&nbsp;[% error | html %]</span></li>
                       [% END %]
                     </ul>
                   </div>

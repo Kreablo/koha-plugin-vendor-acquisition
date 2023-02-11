@@ -35,6 +35,7 @@
    homebranch = "Hembibliotek",
    holdingbranch = "Nuvarande bibliotek",
    invoice_number = "Fakturanummer",
+   itembudget = "Avvikande budget",
    items = "Beställda exemplar",
    item_no = "Exemplarinformation",
    itemtype = "Exemplartyp",

@@ -51,9 +51,12 @@ sub new_from_hash {
 sub update_from_cgi {
     my ($self, $cgi) = @_;
 
-    for my $field (qw(notforloan homebranch holdingbranch location itemnumber itemtype ccode itemcallnumber)) {
+    for my $field (qw(notforloan homebranch holdingbranch location itemnumber itemtype ccode itemcallnumber budget_id)) {
         my $val = $cgi->param($field . '-' . $self->{item_id});
-        if (defined $val) {
+        if ($field eq 'budget_id') {
+            warn "budget_id is '$val'";
+        }
+        if (defined $val && ($field ne 'budget_id' || $val ne '')) {
             $self->{$field} = $val;
         }
     }
@@ -105,7 +108,9 @@ SET record_id = ?,
     itemnumber = ?,
     barcode = ?,
     itemcallnumber = ?,
-    price = ?
+    price = ?,
+    budget_id = ?,
+    ordernumber = ?
 EOF
     my @binds = (
         $self->{record}->{record_id},
@@ -118,7 +123,9 @@ EOF
         $self->{itemnumber},
         $self->{barcode},
         $self->{itemcallnumber},
-        $self->{price}
+        $self->{price},
+        $self->{budget_id},
+        $self->{ordernumber}
         );
 
     if (defined $self->{item_id}) {
@@ -199,7 +206,7 @@ sub process {
 }
 
 sub fields {
-    return qw(item_id record_id notforloan homebranch holdingbranch location itemtype ccode itemnumber barcode);
+    return qw(item_id record_id notforloan homebranch holdingbranch location itemtype ccode itemnumber barcode budget_id ordernumber);
 }
 
 sub _err {

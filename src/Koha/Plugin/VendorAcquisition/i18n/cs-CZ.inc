@@ -35,6 +35,7 @@
    homebranch = "Domovská knihovna",
    holdingbranch = "Aktuální umístění",
    invoice_number = "Číslo faktury",
+   itembudget = "Deviating budget",
    items = "Objednané položky",
    item_no = "Informace o položce",
    itemtype = "Typ jednotky",

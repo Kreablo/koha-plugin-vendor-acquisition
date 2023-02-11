@@ -200,7 +200,7 @@ sub update_from_cgi {
 }
 
 sub fields {
-    return qw (record_id author barcode isbn  callnumber callnumber_standard estimated_delivery_date biblioid biblioid_standard note record currency_code price price_inc_vat price_rrp publisher quantity title vat year biblionumber ordernumber merge_biblionumber);
+    return qw (record_id author barcode isbn  callnumber callnumber_standard estimated_delivery_date biblioid biblioid_standard note record currency_code price price_inc_vat price_rrp publisher quantity title vat year biblionumber merge_biblionumber);
 }
 
 sub load_record_id {
@@ -220,7 +220,7 @@ sub load_record_id {
 
     my $recordtable = $self->table_naming('record');
 
-    my $sql = "SELECT record_id, ordernumber FROM `$recordtable` WHERE order_id = ? AND biblioid = ? AND biblioid_standard = ?";
+    my $sql = "SELECT record_id FROM `$recordtable` WHERE order_id = ? AND biblioid = ? AND biblioid_standard = ?";
 
     my $sth = $dbh->prepare($sql);
 
@@ -233,7 +233,7 @@ sub load_record_id {
 
     my $ids = [];
     while (my $row = $sth->fetchrow_hashref) {
-        push @$ids, { record_id => $row->{record_id}, ordernumber => $row->{ordernumber} };
+        push @$ids, { record_id => $row->{record_id} };
     }
 
     if (@$ids) {
@@ -283,7 +283,6 @@ SET order_id = ?,
     vat = ?,
     year = ?,
     biblionumber = ?,
-    ordernumber = ?,
     merge_biblionumber = ?
 EOF
 
@@ -322,7 +321,6 @@ EOF
             $self->{vat},
             $self->{year},
             $self->{biblionumber},
-            $self->{ordernumber},
             $self->{merge_biblionumber}
         );
 

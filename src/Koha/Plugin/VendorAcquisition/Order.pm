@@ -510,8 +510,10 @@ sub imported {
     my $self = shift;
 
     for my $record (@{$self->{records}}) {
-        if (defined $record->{ordernumber}) {
-            return 1;
+        for my $item (@{$record->{items}}) {
+            if (defined $item->{ordernumber}) {
+                return 1;
+            }
         }
     }
     return 0;
@@ -545,54 +547,79 @@ sub process {
 
     for my $record (@{$self->{records}}) {
         $record->process;
-        if ($record->{ordernumber}) {
-            next;
-        } else {
-            my $internalnote_template = C4::Templates::gettemplate( $plugin->mbf_path('order_internalnote.tt'), 'intranet', $plugin->{cgi});
+        my $internalnote_template = C4::Templates::gettemplate( $plugin->mbf_path('order_internalnote.tt'), 'intranet', $plugin->{cgi});
 
-            $internalnote_template->param(
-                CLASS       => $plugin->{'class'},
-                METHOD      => scalar $plugin->{'cgi'}->param('method'),
-                PLUGIN_PATH => $plugin->get_plugin_http_path(),
-                PLUGIN_DIR  => $plugin->bundle_path(),
-                LANG        => C4::Languages::getlanguage($self->{'cgi'}),
-                lang_dialect => $lang,
-                lang_all => $lang_split[0],
-                plugin_dir => $plugin_dir,
-                estimated_delivery_date => output_pref({ dt => $record->{estimated_delivery_date},
-                                                         dateonly => 1}),
-                note => $record->{note}
-                );
+        $internalnote_template->param(
+            CLASS       => $plugin->{'class'},
+            METHOD      => scalar $plugin->{'cgi'}->param('method'),
+            PLUGIN_PATH => $plugin->get_plugin_http_path(),
+            PLUGIN_DIR  => $plugin->bundle_path(),
+            LANG        => C4::Languages::getlanguage($self->{'cgi'}),
+            lang_dialect => $lang,
+            lang_all => $lang_split[0],
+            plugin_dir => $plugin_dir,
+            estimated_delivery_date => output_pref({ dt => $record->{estimated_delivery_date},
+                                                     dateonly => 1}),
+            note => $record->{note}
+            );
 
-            my $orderinfo = {
-                biblionumber => $record->{biblionumber},
-                booksellerid => $booksellerid,
-                basketno => $self->{basketno},
-                budget_id => $self->{budget_id},
-		created_by => C4::Context->userenv->{'number'},
-                currency => $record->{currency},
-                quantity => $record->{quantity},
-                replacementprice => $record->{price_inc_vat},
-                listprice => $record->{price},
-                ecost => $record->{price_inc_vat},
-                ecost_tax_excluded => $record->{price},
-                ecost_tax_included => $record->{price_inc_vat},
-                unitprice_tax_excluded => $record->{price},
-                unitprice_tax_included => $record->{price_inc_vat},
-                rrp_tax_included => $record->{rrp_price},
-                tax_rate_bak => $record->{vat},
-                order_internalnote => scalar($internalnote_template->output),
-                order_vendornote => $self->{order_note},
-                purchaseordernumber => $self->{order_number}
-            };
+        my $orderinfo = {
+            biblionumber => $record->{biblionumber},
+            booksellerid => $booksellerid,
+            basketno => $self->{basketno},
+            budget_id => $self->{budget_id},
+            created_by => C4::Context->userenv->{'number'},
+            currency => $record->{currency},
+            quantity => $record->{quantity},
+            replacementprice => $record->{price_inc_vat},
+            listprice => $record->{price},
+            ecost => $record->{price_inc_vat},
+            ecost_tax_excluded => $record->{price},
+            ecost_tax_included => $record->{price_inc_vat},
+            unitprice_tax_excluded => $record->{price},
+            unitprice_tax_included => $record->{price_inc_vat},
+            rrp_tax_included => $record->{rrp_price},
+            tax_rate_bak => $record->{vat},
+            order_internalnote => scalar($internalnote_template->output),
+            order_vendornote => $self->{order_note},
+            purchaseordernumber => $self->{order_number}
+        };
 
-            my $order = Koha::Acquisition::Order->new($orderinfo)->store;
+        my $order = Koha::Acquisition::Order->new($orderinfo)->store;
 
-            $record->{ordernumber} = $order->ordernumber;
+        warn "order " . $order->ordernumber . " quantity " . $order->quantity . " order biblionumber " . $order->biblionumber;
 
-            for my $item (@{$record->{items}}) {
-                $order->add_item( $item->{itemnumber} );
+        my %order_per_budget = ($self->{budget_id} => $order);
+
+        for my $item (@{$record->{items}}) {
+            my $budget_id = $item->{budget_id} // $self->{budget_id};
+            my $o = $order_per_budget{$budget_id};
+            if (!defined $o) {
+                $orderinfo->{budget_id} = $budget_id;
+                $orderinfo->{quantity} = 1;
+                $o = Koha::Acquisition::Order->new($orderinfo)->store;
+                $order_per_budget{$budget_id} = $o;
+                warn "case 1";
+            } elsif ($budget_id != $self->{budget_id}) {
+                $o->quantity($o->quantity + 1);
+                $o->store;
+                warn "case 2";
             }
+            if ($budget_id != $self->{budget_id}) {
+                warn "case 3";
+                if ($order->quantity == 1) {
+                    warn "delete ordernumber " . $order->ordernumber;
+                    $order->delete;
+                } else {
+                    warn "decrease ordernumber " . $order->ordernumber;
+                    $order->quantity($order->quantity - 1);
+                    $order->store;
+                }
+            }
+            warn "ordernumber: " . $o->ordernumber;
+            $o->add_item( $item->{itemnumber} );
+            $item->{ordernumber} = $o->ordernumber;
+            $item->store;
         }
     }
 

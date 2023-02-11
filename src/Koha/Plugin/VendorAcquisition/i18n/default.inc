@@ -35,6 +35,7 @@
    homebranch = "Home branch",
    holdingbranch = "Holding branch",
    invoice_number = "Invoice number",
+   itembudget = "Deviating budget",
    items = "Ordered items",
    item_no = "Item information ",
    itemtype = "Item type",

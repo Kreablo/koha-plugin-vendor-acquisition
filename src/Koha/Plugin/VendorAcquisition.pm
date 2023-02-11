@@ -142,7 +142,6 @@ EOF
     vat DOUBLE,
     year INT,
     biblionumber INT DEFAULT NULL,
-    ordernumber INT DEFAULT NULL,
     merge_biblionumber INT DEFAULT NULL,
     INDEX (order_id),
     INDEX (isbn),
@@ -150,11 +149,9 @@ EOF
     INDEX (biblionumber),
     INDEX (merge_biblionumber),
     INDEX (biblioid_standard, biblioid),
-    INDEX (ordernumber),
     FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (merge_biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (ordernumber) REFERENCES aqorders (ordernumber) ON UPDATE CASCADE ON DELETE SET NULL
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
@@ -178,17 +175,23 @@ EOF
     price DECIMAL(8, 2) DEFAULT NULL,
     itemnumber INT DEFAULT NULL,
     barcode varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    budget_id INT DEFAULT NULL,
+    ordernumber INT DEFAULT NULL,
     INDEX (record_id),
     INDEX (homebranch),
     INDEX (holdingbranch),
     INDEX (itemnumber),
     INDEX (itemtype),
     INDEX (barcode),
+    INDEX (budget_id),
+    INDEX (ordernumber),
     FOREIGN KEY (record_id) REFERENCES `$recordtable` (record_id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (homebranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (holdingbranch) REFERENCES branches (branchcode) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (itemnumber) REFERENCES items (itemnumber) ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL
+    FOREIGN KEY (itemtype) REFERENCES itemtypes (itemtype) ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (budget_id) REFERENCES aqbudgets (budget_id) ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (ordernumber) REFERENCES aqorders (ordernumber) ON UPDATE CASCADE ON DELETE SET NULL
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
@@ -342,6 +345,18 @@ EOF
     if (version_cmp($database_version, '1.15') < 0) {
         my $otable = $self->get_qualified_table_name('order');
         $dbh->do("ALTER IGNORE TABLE `$otable` ADD COLUMN basketname varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL AFTER basketno");
+    }
+
+    if (version_cmp($database_version, '1.17') < 0) {
+        my $itemtable = $self->get_qualified_table_name('item');
+        $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD COLUMN budget_id INT DEFAULT NULL AFTER ccode");
+        $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD FOREIGN KEY (budget_id) REFERENCES aqbudgets (budget_id) ON UPDATE CASCADE ON DELETE SET NULL");
+        my $recordtable = $self->get_qualified_table_name('record');
+        $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD COLUMN ordernumber INT DEFAULT NULL AFTER budget_id");
+        $dbh->do("ALTER IGNORE TABLE `$itemtable` ADD FOREIGN KEY (ordernumber) REFERENCES aqorders (ordernumber) ON UPDATE CASCADE ON DELETE SET NULL");
+        $dbh->do("UPDATE `$itemtable` SET ordernumber = (SELECT ordernumber FROM `$recordtable` WHERE `$itemtable`.record_id=`$recordtable`.record_id)");
+        $dbh->do("ALTER TABLE `$recordtable` DROP FOREIGN KEY IF EXISTS `${recordtable}_ibfk_4`");
+        $dbh->do("ALTER TABLE `$recordtable` DROP COLUMN IF EXISTS ordernumber");
     }
 
     return $success;
