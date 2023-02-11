@@ -151,7 +151,7 @@ EOF
     INDEX (biblioid_standard, biblioid),
     FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (merge_biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (merge_biblionumber) REFERENCES biblio (biblionumber) ON UPDATE CASCADE ON DELETE SET NULL
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
