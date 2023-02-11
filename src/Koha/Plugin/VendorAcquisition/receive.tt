@@ -122,6 +122,9 @@ div.message-box {
    border-radius: 4px;
    padding: 5px;
 }
+div.message-box-wrapper {
+   min-height: 28px;
+}
 </style>
 [% INCLUDE 'doc-head-close.inc' %]
 <body>
@@ -160,6 +163,7 @@ div.message-box {
                 </ul>
               </div>
               [% END %]
+              <div class="message-box-wrapper">
               [% IF save && !order.all_errors %]<div class="message-box bg-success text-success"><span class="fa fa-check"></span>&nbsp;<span id="save-success">[% MSG.order_save_success %]</span></div>[% END %]
               [% IF order.imported %]<div class="message-box bg-warning text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed %]</span></div>[% END %]
               [% IF order.warnings %]
@@ -172,6 +176,7 @@ div.message-box {
                 </ul>
               </div>
               [% END %]
+              </div>
               </div>
           </div>
           <div class="row">
