@@ -53,9 +53,6 @@ sub update_from_cgi {
 
     for my $field (qw(notforloan homebranch holdingbranch location itemnumber itemtype ccode itemcallnumber budget_id)) {
         my $val = $cgi->param($field . '-' . $self->{item_id});
-        if ($field eq 'budget_id') {
-            warn "budget_id is '$val'";
-        }
         if (defined $val && ($field ne 'budget_id' || $val ne '')) {
             $self->{$field} = $val;
         }

@@ -587,8 +587,6 @@ sub process {
 
         my $order = Koha::Acquisition::Order->new($orderinfo)->store;
 
-        warn "order " . $order->ordernumber . " quantity " . $order->quantity . " order biblionumber " . $order->biblionumber;
-
         my %order_per_budget = ($self->{budget_id} => $order);
 
         for my $item (@{$record->{items}}) {
@@ -599,24 +597,18 @@ sub process {
                 $orderinfo->{quantity} = 1;
                 $o = Koha::Acquisition::Order->new($orderinfo)->store;
                 $order_per_budget{$budget_id} = $o;
-                warn "case 1";
             } elsif ($budget_id != $self->{budget_id}) {
                 $o->quantity($o->quantity + 1);
                 $o->store;
-                warn "case 2";
             }
             if ($budget_id != $self->{budget_id}) {
-                warn "case 3";
                 if ($order->quantity == 1) {
-                    warn "delete ordernumber " . $order->ordernumber;
                     $order->delete;
                 } else {
-                    warn "decrease ordernumber " . $order->ordernumber;
                     $order->quantity($order->quantity - 1);
                     $order->store;
                 }
             }
-            warn "ordernumber: " . $o->ordernumber;
             $o->add_item( $item->{itemnumber} );
             $item->{ordernumber} = $o->ordernumber;
             $item->store;
