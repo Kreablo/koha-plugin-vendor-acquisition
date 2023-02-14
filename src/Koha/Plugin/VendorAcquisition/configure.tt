@@ -80,6 +80,8 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 <dd>
                   [% PROCESS select list=matchers name="record_match_rule" id="record_match_rule" emptyval="1" emptylabel=MSG.none valuekey="matcher_id" labelkey="code" value=record_match_rule %]
                   [% IF record_match_error %] <span class="error">[% MSG.record_match_error %]</span>[% END %]</dd>
+                <dt><label for="fill_out_replacementprice">[% MSG.fill_out_replacementprice %]</label></dt>
+                <dd><input type="checkbox" [% IF fill_out_replacementprice %]checked="checked"[% END %] name="fill_out_replacementprice" id="fill_out_replacementprice" value="1"></dd>
                 <dt><label for="demomode">[% MSG.demo_mode %]</label></dt>
                 <dd><input type="checkbox" [% IF demomode %]checked="checked"[% END %] name="demomode" id="demomode" value="1"></dd>
               </dl>
@@ -189,7 +191,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 <dt><label data-for="vendor-id">[% MSG.vendor_id | html %] </label></dt>
                 <dd><input name="vendor-id" type="text" required></dd>
                 <dt><label data-for="koha-vendor-id">[% MSG.koha_vendor_id | html %] </label></dt>
-                <dd><select name="koha-vendor-id">
+                <dd><select name="koha-vendor-id" class="form-control">
                     [% FOREACH v IN booksellers %]
                     <option value="[% v.id | html%]">[% v.name | html %]</option>
                     [% END %]

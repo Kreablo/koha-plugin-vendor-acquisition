@@ -30,6 +30,7 @@
    duplicates = "Lägg till beståndspost(er) på befintlig post:",
    errors = "Felmeddelanden",
    estimated_delivery_date = "Uppskattat leveransdatum",
+   fill_out_replacementprice = "Fyll i ersättningspris",
    goto_basket = "Gå till korg",
    home = "Tillbaka",
    homebranch = "Hembibliotek",

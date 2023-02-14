@@ -30,6 +30,7 @@
    duplicates = "Add item to existing record:",
    errors = "Errors",
    estimated_delivery_date = "Estimated delivery date",
+   fill_out_replacementprice = "Fill out replacementprice",
    goto_basket = "Go to basket",
    home = "Home",
    homebranch = "Home branch",

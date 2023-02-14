@@ -250,6 +250,8 @@ EOF
         $self->store_data({'token' => random_bytes_base64(16, '')});
     }
 
+    $self->store_data({ 'fill_out_replacementprice' => 1 });
+    
     return $success;
 }
 
@@ -357,6 +359,10 @@ EOF
         $dbh->do("UPDATE `$itemtable` SET ordernumber = (SELECT ordernumber FROM `$recordtable` WHERE `$itemtable`.record_id=`$recordtable`.record_id)");
         $dbh->do("ALTER TABLE `$recordtable` DROP FOREIGN KEY IF EXISTS `${recordtable}_ibfk_4`");
         $dbh->do("ALTER TABLE `$recordtable` DROP COLUMN IF EXISTS ordernumber");
+
+        if (!defined($self->retrieve_data('fill_out_replacementprice'))) {
+            $self->store_data({ 'fill_out_replacementprice' => 1 });
+        }
     }
 
     return $success;
@@ -551,6 +557,7 @@ sub configure {
 
         $self->store_data({
             demomode => scalar($cgi->param('demomode')),
+            fill_out_replacementprice => scalar($cgi->param('fill_out_replacementprice')),
             record_match_rule => $record_match_rule,
         });
 
@@ -599,6 +606,7 @@ sub configure {
         record_match_error => $matcher_error,
         record_match_rule => $record_match_rule,
         demomode => $self->retrieve_data('demomode'),
+        fill_out_replacementprice => $self->retrieve_data('fill_out_replacementprice'),
         booksellers => $booksellers->unblessed,
         budgets => $budgets,
         matchers => \@matchers,

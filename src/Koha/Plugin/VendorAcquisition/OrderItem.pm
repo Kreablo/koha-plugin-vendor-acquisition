@@ -178,7 +178,7 @@ sub process {
 	}
     }
 
-    my $item = Koha::Item->new({
+    my $iteminfo = {
         biblionumber => $self->{record}->{biblionumber},
         biblioitemnumber => $biblioitemnumber,
         homebranch => $self->{homebranch},
@@ -189,8 +189,14 @@ sub process {
         ccode => $self->{ccode},
         barcode => $barcode,
         itemcallnumber => $self->{itemcallnumber},
-        price => $self->{record}->{price}
-                               })->store;
+        price => $self->{record}->{price_inc_vat}
+    };
+
+    if ($self->{plugin}->retrieve_data('fill_out_replacementprice')) {
+        $iteminfo->{replacementprice} = $self->{record}->{price_inc_vat};
+    }
+
+    my $item = Koha::Item->new($iteminfo)->store;
 
     if (!defined $item) {
         $self->_err("Failed to generate koha item.");

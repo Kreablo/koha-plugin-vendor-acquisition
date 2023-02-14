@@ -30,6 +30,7 @@
    duplicates = "Přidat položku k existujícímu záznamu:",
    errors ="Chyby",
    estimated_delivery_date = "Předpokládané datum dodání",
+   fill_out_replacementprice = "Fill out replacementprice",
    goto_basket = "Přejít do košíku",
    home = "Domů",
    homebranch = "Domovská knihovna",

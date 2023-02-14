@@ -571,19 +571,27 @@ sub process {
             created_by => C4::Context->userenv->{'number'},
             currency => $record->{currency},
             quantity => $record->{quantity},
-            replacementprice => $record->{price_inc_vat},
             listprice => $record->{price},
             ecost => $record->{price_inc_vat},
             ecost_tax_excluded => $record->{price},
             ecost_tax_included => $record->{price_inc_vat},
+            unitprice => $record->{price_inc_vat},
             unitprice_tax_excluded => $record->{price},
             unitprice_tax_included => $record->{price_inc_vat},
-            rrp_tax_included => $record->{rrp_price},
             tax_rate_bak => $record->{vat},
             order_internalnote => scalar($internalnote_template->output),
             order_vendornote => $self->{order_note},
             purchaseordernumber => $self->{order_number}
         };
+
+        if (defined($record->{rrp_price}) && $record->{rrp_price} > 0) {
+            $orderinfo->{rrp} = $record->{rrp_price};
+            $orderinfo->{rrp_tax_included} = $record->{rrp_price};
+        }
+
+        if ($plugin->retrieve_data('fill_out_replacementprice')) {
+            $orderinfo->{replacementprice} = $record->{price_inc_vat};
+        }
 
         my $order = Koha::Acquisition::Order->new($orderinfo)->store;
 
