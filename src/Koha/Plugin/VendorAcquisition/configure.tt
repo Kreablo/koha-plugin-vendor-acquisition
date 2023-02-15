@@ -34,7 +34,7 @@
     border: 2px solid green;
   }
 </style>
-<title>Koha: [% MSG.module_name %]: [% MSG.configuration %]</title>
+<title>Koha: [% MSG.module_name | html %]: [% MSG.configuration | html %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
 [% PERL %]
 use Data::Dumper;
@@ -56,7 +56,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 [% INCLUDE 'header.inc' %]
 [% INCLUDE 'cat-search.inc' %]
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">[% MSG.home %]</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">[% MSG.plugins %]</a> &rsaquo;  [% MSG.module_name %] &rsaquo; [% MSG.configuration %]</div>
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">[% MSG.home | html %]</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">[% MSG.plugins | html %]</a> &rsaquo;  [% MSG.module_name | html %] &rsaquo; [% MSG.configuration | html %]</div>
 
 <div class="main container-fluid">
   <div class="row">
@@ -64,14 +64,14 @@ $stash->set('defined' => sub { return defined $_[0]; });
       <main class="page-section">
         <div class="row">
           <div class="col-xs-12">
-            <h3>Koha:  [% MSG.module_name %]: [% MSG.configuration %]</h3>
+            <h3>Koha:  [% MSG.module_name | html %]: [% MSG.configuration | html %]</h3>
 
             <div class="message dialog">
-              <h2>[% MSG.receive_url_heading %]</h2>
+              <h2>[% MSG.receive_url_heading | html %]</h2>
 
-              <p>[% MSG.receive_url_text %]</p>
-              <p class="receive-url bg-info"><a href ="[% receive_url %]">[% receive_url %]</a></p>
-              <p>[% MSG.receive_url_info %]</p>
+              <p>[% MSG.receive_url_text | html %]</p>
+              <p class="receive-url bg-info"><a href ="[% receive_url %]">[% receive_url | html %]</a></p>
+              <p>[% MSG.receive_url_info | html %]</p>
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
               <input type="hidden" name="save" value="1">
               <input type="hidden" name="token" value="[% token %]">
               <dl>
-                <dt><label for="record_match_rule">[% MSG.record_match_rule %]</label></dt>
+                <dt><label for="record_match_rule">[% MSG.record_match_rule | html %]</label></dt>
                 <dd>
                   [% PROCESS select list=matchers name="record_match_rule" id="record_match_rule" emptyval="1" emptylabel=MSG.none valuekey="matcher_id" labelkey="code" value=record_match_rule %]
                   [% IF record_match_error %] <span class="error">[% MSG.record_match_error | html %]</span>[% END %]</dd>
@@ -92,7 +92,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 <dd title="[% MSG.price_including_vat_mouseover | html %]"><input type="checkbox" [% IF price_including_vat %]checked="checked"[% END %] name="price_including_vat" id="price_including_vat" value="1"></dd>
                 <dt><label for="fill_out_replacementprice">[% MSG.fill_out_replacementprice | html %]</label></dt>
                 <dd><input type="checkbox" [% IF fill_out_replacementprice %]checked="checked"[% END %] name="fill_out_replacementprice" id="fill_out_replacementprice" value="1"></dd>
-                <dt><label for="demomode">[% MSG.demo_mode %]</label></dt>
+                <dt><label for="demomode">[% MSG.demo_mode | html %]</label></dt>
                 <dd><input type="checkbox" [% IF demomode %]checked="checked"[% END %] name="demomode" id="demomode" value="1"></dd>
               </dl>
               <h3>[% MSG.vendor_mappings | html  %]</h3>
@@ -151,17 +151,17 @@ $stash->set('defined' => sub { return defined $_[0]; });
                     <dd>[% PROCESS select list=branches name="default-homebranch" id=id0 value=dv.homebranch emptyval=1 emptylabel=MSG.none valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
                     <dt>
                       [% SET id0 = "default-holdingbranch-" _ loop.index() %]
-                      <label for="[% id0 %]">[% MSG.default_holdingbranch %]</label>
+                      <label for="[% id0 %]">[% MSG.default_holdingbranch | html %]</label>
                     </dt>
                     <dd>[% PROCESS select id=id0 list=branches name="default-holdingbranch" emptyval=1 emptylabel=MSG.none value=dv.holdingbranch valuekey="branchcode" labelkey="branchname" required=0 %]</dd>
                     <dt>
                       [% SET id0 = "default-location-" _ loop.index() %]
-                      <label for="[% id0 %]">[% MSG.default_location %]</label>
+                      <label for="[% id0 %]">[% MSG.default_location | html %]</label>
                     </dt>
                     <dd>[% PROCESS select id=id0 list=locav name="default-location"  emptyval=1 emptylabel=MSG.none value=dv.location valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
                     <dt>
                       [% SET id0 = "default-notforloan-" _ loop.index() %]
-                      <label for="[% id0 %]">[% MSG.default_notforloan %]</label>
+                      <label for="[% id0 %]">[% MSG.default_notforloan | html %]</label>
                     </dt>
                     <dd>[% PROCESS select id=id0 list=notforloanav name="default-notforloan" value=dv.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
                   </dl>
@@ -184,7 +184,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
               </div>
               [% END %]
               [% IF save_success %]
-              <p id="save-success" class="text-success">[% MSG.save_success %]</p>
+              <p id="save-success" class="text-success">[% MSG.save_success | html %]</p>
               [% END %]
               <hr>
               <button type="submit" value="save" class="btn-primary save-button" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>

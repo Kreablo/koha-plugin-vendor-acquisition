@@ -20,7 +20,7 @@ $stash->set('dump' => sub { return Dumper($_[0]) });
 $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK select %]
-<select name="[% name %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %]required[% END %]>
+<select name="[% name | html %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %]required[% END %]>
   [% IF emptyval %]
   <option value="" [% IF empty(value) %]selected="selected"[% END %]>[% IF defined(emptylabel) %][% emptylabel | html %][% ELSE %][% emptyval | html %][% END %]</option>
   [% END %]
@@ -33,7 +33,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
   [% IF order.imported() %]
 <div class="col-xs-12">
   <div id="save-buttons" class="text-warning save-buttons bg-warning">
-    [% MSG.order_already_processed %]
+    [% MSG.order_already_processed | html %]
   </div>
 </div>
   [% ELSE %]
@@ -47,7 +47,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% INCLUDE 'doc-head-open.inc' %]
 
-<title>Koha: [% MSG.module_name %]: [% MSG.receive_order %]</title>
+<title>Koha: [% MSG.module_name | html %]: [% MSG.receive_order | html %]</title>
 <style>
 #order_information_table th, #order_information_table td {
    text-align: left;
@@ -145,7 +145,7 @@ div.message-box-wrapper {
               <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order | html %]</h3>
               [% IF can_configure %]
               <div class="bg-info dialog">
-                <a href="[% configure_url %]"><span class="fa fa-cog"></span> [% MSG.configure %]</a>
+                <a href="[% configure_url %]"><span class="fa fa-cog"></span> [% MSG.configure | html %]</a>
               </div>
               [% END %]
               [% IF order.continue_url %]
@@ -164,8 +164,8 @@ div.message-box-wrapper {
               </div>
               [% END %]
               <div class="message-box-wrapper">
-              [% IF save && !order.all_errors %]<div class="message-box bg-success text-success"><span class="fa fa-check"></span>&nbsp;<span id="save-success">[% MSG.order_save_success %]</span></div>[% END %]
-              [% IF order.imported %]<div class="message-box bg-warning text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed %]</span></div>[% END %]
+              [% IF save && !order.all_errors %]<div class="message-box bg-success text-success"><span class="fa fa-check"></span>&nbsp;<span id="save-success">[% MSG.order_save_success | html %]</span></div>[% END %]
+              [% IF order.imported %]<div class="message-box bg-warning text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed | html %]</span></div>[% END %]
               [% IF order.warnings %]
               <div class="bg-warning text-warning">
                 <h4>[% MSG.warnings | html %]</h4>
@@ -200,15 +200,15 @@ div.message-box-wrapper {
                 <dt><label for="order-basket">[% MSG.basket | html %]</label></dt>
                 <dd>
                   <div id="basket-type-selector">
-                    <label for="basket-type-existing"><input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF order.basket_type == "existing" || !order.basket_type %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_existing %]</label>
-                    <label for="basket-type-new-order"><input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF order.basket_type == "new-order" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new_order %]</label>
-                    <label for="basket-type-new"><input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF order.basket_type == "new" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new %]</label>
+                    <label for="basket-type-existing"><input type="radio" name="basket-type" value="existing" id="basket-type-existing" [% IF order.basket_type == "existing" || !order.basket_type %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_existing | html %]</label>
+                    <label for="basket-type-new-order"><input type="radio" name="basket-type" value="new-order" id="basket-type-new-order" [% IF order.basket_type == "new-order" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new_order | html %]</label>
+                    <label for="basket-type-new"><input type="radio" name="basket-type" value="new" id="basket-type-new" [% IF order.basket_type == "new" %]checked="checked"[% END %]>&nbsp;[% MSG.basket_type_new | html %]</label>
                   </div>
                   <div id="order-basket-select" [% IF order.basket_type != "existing" && order.basket_type %]style="display: none"[% END %]>[% PROCESS select list=baskets id="order-basket" class="" name="order-basket" value=order.basketno valuekey="basketno" labelkey="basketname" emptyval=1 emptylabel=MSG.none required=1 %]</div>
-                  <div id="order-basket-name" [% IF order.basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname %]</label><input id="order-basketname" name="order-basketname" type="text" value="[% order.basketname | html %]"></div>
-                  <div id="order-basket-order" [% IF order.basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname %] [% order.order_number %]</div>
+                  <div id="order-basket-name" [% IF order.basket_type != "new-order" %]style="display: none"[% END %]><label for="order-basketname">[% MSG.basketname | html %]</label><input id="order-basketname" name="order-basketname" type="text" value="[% order.basketname | html %]"></div>
+                  <div id="order-basket-order" [% IF order.basket_type != "new" %]style="display: none"[% END %]>[% MSG.basketname | html %] [% order.order_number | html %]</div>
                   [% IF order.basket_url %]
-                  <div id="order-basket-link"><a href="[% order.basket_url | html %]">[% MSG.goto_basket %]</a></div>
+                  <div id="order-basket-link"><a href="[% order.basket_url %]">[% MSG.goto_basket | html %]</a></div>
                   [% END %]
                 </dd>
               </dl>
@@ -233,8 +233,8 @@ div.message-box-wrapper {
                     <div class="row">
                       <div class="col-xs-6 col-md-6">
                         <dl class="form-input">
-                          <dt>[% MSG.record_note %]</dt>
-                          <dd>[% record.note %]</dd>
+                          <dt>[% MSG.record_note | html %]</dt>
+                          <dd>[% record.note | html %]</dd>
                           <dt>[% MSG.biblioid_standard | html %]</dt>
                           <dd>[% record.biblioid_standard | html %]</dd>
                           <dt>[% MSG.biblioid | html %]</dt>
@@ -258,25 +258,25 @@ div.message-box-wrapper {
                                 <dt>
                                   [% SET id_ = "notforloan-" _ record_item.item_id %]
                                   [% SET name_ = "notforloan-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.notforloan %]</label>
+                                  <label for="[% id_ %]">[% MSG.notforloan | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" name=name_ list=notforloanav value=record_item.notforloan emptyval=0 valuekey="authorised_value" labelkey="lib" required=0  %]</dd>
                                 <dt>
                                   [% SET id_ = "itemtype-" _ record_item.item_id %]
                                   [% SET name_ = "itemtype-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.itemtype %]</label>
+                                  <label for="[% id_ %]">[% MSG.itemtype | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" name=name_ list=itemtypes value=record_item.itemtype emptyval=1 emptylabel=MSG.none valuekey="itemtype" labelkey="description" required=1 %]</dd>
                                 <dt>
                                   [% SET id_ = "ccode-" _ record_item.item_id %]
                                   [% SET name_ = "ccode-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.ccode %]</label>
+                                  <label for="[% id_ %]">[% MSG.ccode | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" name=name_ list=ccodeav value=record_item.ccode emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
                                 <dt>
                                   [% SET id_ = "location-" _ record_item.item_id %]
                                   [% SET name_ = "location-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.location %]</label>
+                                  <label for="[% id_ %]">[% MSG.location | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" name=name_ list=locav value=record_item.location emptyval=1 emptylabel=MSG.none valuekey="authorised_value" labelkey="lib" required=0 %]</dd>
                                 <dt>
@@ -288,19 +288,19 @@ div.message-box-wrapper {
                                 <dt>
                                   [% SET id_ = "holdingbranch-" _ record_item.item_id %]
                                   [% SET name_ = "holdingbranch-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.holdingbranch %]</label>
+                                  <label for="[% id_ %]">[% MSG.holdingbranch | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select id=id_ class="" list=branches name=name_ emptyval=1 emptylabel=MSG.none value=record_item.holdingbranch valuekey="branchcode" labelkey="branchname" required=1 %]</dd>
                                 <dt>
                                   [% SET id_ = "itemcallnumber-" _ record_item.item_id %]
                                   [% SET name = "itemcallnumber-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.callnumber %]</label>
+                                  <label for="[% id_ %]">[% MSG.callnumber | html %]</label>
                                 </dt>
                                 <dd><input id="[% id_ %]" class="form-control" name="[% name %]" type="text" value="[% record_item.itemcallnumber %]"></dd>
                                 <dt>
                                   [% SET id_ = "budget_id-" _ record_item.item_id %]
                                   [% SET name = "budget_id-" _ record_item.item_id %]
-                                  <label for="[% id_ %]">[% MSG.itembudget %]</label>
+                                  <label for="[% id_ %]">[% MSG.itembudget | html %]</label>
                                 </dt>
                                 <dd>[% PROCESS select list=budgets id=id_ class="" name=name value=record_item.budget_id valuekey="budget_id" labelkey="budget_name" emptyval=1 emptylabel=MSG.none required=0 %]</dd>
                               </dl>
