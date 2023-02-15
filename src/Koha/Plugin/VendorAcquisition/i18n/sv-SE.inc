@@ -53,6 +53,8 @@
    ordered_items = "Beställda poster",
    order_save_success = "Orderinformationen sparades framgångsrikt.",
    plugins = "Plugins",
+   price_including_vat = "Använd huvudsakligen pris inklusive moms",
+   price_including_vat_mouseover = "Fyll i fälten unitprice, ecost i orderpost, och price i exemplarpost med pris inklusive moms.",
    receive_order = "Ta emot beställning",
    receive_order_failure = "Fel vid mottagning av beställning",
    receive_order_failure_message = "Ett fel uppstod vid mottagning av beställning:",

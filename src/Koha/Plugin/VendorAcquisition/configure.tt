@@ -26,6 +26,13 @@
      text-align: left;
      max-width: 10em;
   }
+  .receive-url {
+    font-size: smaller;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 1em;
+    border: 2px solid green;
+  }
 </style>
 <title>Koha: [% MSG.module_name %]: [% MSG.configuration %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
@@ -62,7 +69,8 @@ $stash->set('defined' => sub { return defined $_[0]; });
             <div class="message dialog">
               <h2>[% MSG.receive_url_heading %]</h2>
 
-              <p>[% MSG.receive_url_text %] <a href ="[% receive_url %]">[% receive_url %]</a></p>
+              <p>[% MSG.receive_url_text %]</p>
+              <p class="receive-url bg-info"><a href ="[% receive_url %]">[% receive_url %]</a></p>
               <p>[% MSG.receive_url_info %]</p>
             </div>
           </div>
@@ -79,8 +87,10 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 <dt><label for="record_match_rule">[% MSG.record_match_rule %]</label></dt>
                 <dd>
                   [% PROCESS select list=matchers name="record_match_rule" id="record_match_rule" emptyval="1" emptylabel=MSG.none valuekey="matcher_id" labelkey="code" value=record_match_rule %]
-                  [% IF record_match_error %] <span class="error">[% MSG.record_match_error %]</span>[% END %]</dd>
-                <dt><label for="fill_out_replacementprice">[% MSG.fill_out_replacementprice %]</label></dt>
+                  [% IF record_match_error %] <span class="error">[% MSG.record_match_error | html %]</span>[% END %]</dd>
+                <dt title="[% MSG.price_including_vat_mouseover | html %]"><label for="price_including_vat">[% MSG.price_including_vat | html %]</label></dt>
+                <dd title="[% MSG.price_including_vat_mouseover | html %]"><input type="checkbox" [% IF price_including_vat %]checked="checked"[% END %] name="price_including_vat" id="price_including_vat" value="1"></dd>
+                <dt><label for="fill_out_replacementprice">[% MSG.fill_out_replacementprice | html %]</label></dt>
                 <dd><input type="checkbox" [% IF fill_out_replacementprice %]checked="checked"[% END %] name="fill_out_replacementprice" id="fill_out_replacementprice" value="1"></dd>
                 <dt><label for="demomode">[% MSG.demo_mode %]</label></dt>
                 <dd><input type="checkbox" [% IF demomode %]checked="checked"[% END %] name="demomode" id="demomode" value="1"></dd>

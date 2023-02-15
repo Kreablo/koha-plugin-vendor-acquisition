@@ -52,7 +52,9 @@
    order_number = "Order number",
    ordered_items = "Ordered items",
    order_save_success = "The order information was successfully saved.",
-   plugins = "Plugins"
+   plugins = "Plugins",
+   price_including_vat = "Mainly use price including VAT",
+   price_including_vat_mouseover = "Fill in the fields unitprice, ecost in the order record, and price in the item record with the price including VAT.",
    receive_order = "Receive Order",
    receive_order_failure = "Receive Order Failure",
    receive_order_failure_message = "An error occured when processing the order:",

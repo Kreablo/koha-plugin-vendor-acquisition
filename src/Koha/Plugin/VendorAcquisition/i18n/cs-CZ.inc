@@ -53,6 +53,8 @@
    ordered_items = "Objednané položky",
    order_save_success = "Informace o objednávce byly úspěšně uloženy.",
    plugins = "Zásuvné moduly"
+   price_including_vat = "Mainly use price including VAT",
+   price_including_vat_mouseover = "Fill in the fields unitprice, ecost in the order record, and price in the item record with the price including VAT.",
    receive_order = "Přijmout objednávku",
    receive_order_failure = "Neúspěšný příjem objednávky",
    receive_order_failure_message = "Při zpracování objednávky došlo k chybě:",

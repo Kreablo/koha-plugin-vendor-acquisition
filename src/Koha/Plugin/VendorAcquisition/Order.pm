@@ -563,6 +563,8 @@ sub process {
             note => $record->{note}
             );
 
+        my $main_price = $record->{$plugin->retrieve_data('price_including_vat') ? 'price_inc_vat' : 'price'};
+
         my $orderinfo = {
             biblionumber => $record->{biblionumber},
             booksellerid => $booksellerid,
@@ -572,10 +574,10 @@ sub process {
             currency => $record->{currency},
             quantity => $record->{quantity},
             listprice => $record->{price},
-            ecost => $record->{price_inc_vat},
+            ecost => $main_price,
             ecost_tax_excluded => $record->{price},
             ecost_tax_included => $record->{price_inc_vat},
-            unitprice => $record->{price_inc_vat},
+            unitprice => $main_price,
             unitprice_tax_excluded => $record->{price},
             unitprice_tax_included => $record->{price_inc_vat},
             tax_rate_bak => $record->{vat},

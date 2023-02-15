@@ -29,14 +29,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "1.17";
+our $VERSION = "2.0";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2023-02-10",
+    date_updated    => "2023-02-15",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -251,6 +251,7 @@ EOF
     }
 
     $self->store_data({ 'fill_out_replacementprice' => 1 });
+    $self->store_data({ 'price_including_vat' => 0 });
     
     return $success;
 }
@@ -360,8 +361,14 @@ EOF
         $dbh->do("ALTER TABLE `$recordtable` DROP FOREIGN KEY IF EXISTS `${recordtable}_ibfk_4`");
         $dbh->do("ALTER TABLE `$recordtable` DROP COLUMN IF EXISTS ordernumber");
 
+    }
+
+    if (version_cmp($database_version, '2.0') < 0) {
         if (!defined($self->retrieve_data('fill_out_replacementprice'))) {
             $self->store_data({ 'fill_out_replacementprice' => 1 });
+        }
+        if (!defined($self->retrieve_data('price_including_vat'))) {
+            $self->store_data({ 'price_including_vat' => 0 });
         }
     }
 
@@ -558,6 +565,7 @@ sub configure {
         $self->store_data({
             demomode => scalar($cgi->param('demomode')),
             fill_out_replacementprice => scalar($cgi->param('fill_out_replacementprice')),
+            price_including_vat => scalar($cgi->param('price_including_vat')),
             record_match_rule => $record_match_rule,
         });
 
@@ -607,6 +615,7 @@ sub configure {
         record_match_rule => $record_match_rule,
         demomode => $self->retrieve_data('demomode'),
         fill_out_replacementprice => $self->retrieve_data('fill_out_replacementprice'),
+        price_including_vat => $self->retrieve_data('price_including_vat'),
         booksellers => $booksellers->unblessed,
         budgets => $budgets,
         matchers => \@matchers,

@@ -178,6 +178,8 @@ sub process {
 	}
     }
 
+    my $main_price = $self->{record}->{$self->{plugin}->retrieve_data('price_including_vat') ? 'price_inc_vat' : 'price'};
+
     my $iteminfo = {
         biblionumber => $self->{record}->{biblionumber},
         biblioitemnumber => $biblioitemnumber,
@@ -189,11 +191,11 @@ sub process {
         ccode => $self->{ccode},
         barcode => $barcode,
         itemcallnumber => $self->{itemcallnumber},
-        price => $self->{record}->{price_inc_vat}
+        price => $main_price
     };
 
     if ($self->{plugin}->retrieve_data('fill_out_replacementprice')) {
-        $iteminfo->{replacementprice} = $self->{record}->{price_inc_vat};
+        $iteminfo->{replacementprice} = $self->{record}->{'price_inc_vat'};
     }
 
     my $item = Koha::Item->new($iteminfo)->store;
