@@ -187,7 +187,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
               <p id="save-success" class="text-success">[% MSG.save_success | html %]</p>
               [% END %]
               <hr>
-              <button type="submit" value="save" class="btn-primary save-button" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>
+              <button type="submit" value="save" class="btn-primary save-button btn-lg" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>
             </div>
           </form>
         </div>

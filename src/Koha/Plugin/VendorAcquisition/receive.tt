@@ -39,8 +39,8 @@ $stash->set('defined' => sub { return defined $_[0]; });
   [% ELSE %]
 <div class="col-xs-12">
   <div id="save-buttons" class="save-buttons bg-success">
-    <button type="submit" name="save" value="save" class="btn-primary" ><span class="fa fa-save" /> [% MSG.just_save | html %]</button>
-    <button type="submit" name="save" value="process" class="btn-primary" ><span class="fa fa-arrow-right" /> [% MSG.save_and_process | html %]</button>
+    <button type="submit" name="save" value="save" class="btn-primary  btn-lg" ><span class="fa fa-save" /> [% MSG.just_save | html %]</button>
+    <button type="submit" name="save" value="process" class="btn-primary  btn-lg" ><span class="fa fa-arrow-right" /> [% MSG.save_and_process | html %]</button>
   </div>
 </div>
   [% END %]
