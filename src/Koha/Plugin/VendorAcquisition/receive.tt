@@ -39,8 +39,8 @@ $stash->set('defined' => sub { return defined $_[0]; });
   [% ELSE %]
 <div class="col-xs-12">
   <div id="save-buttons" class="save-buttons bg-success">
-    <button type="submit" name="save" value="save" class="btn-primary  btn-lg" ><span class="fa fa-save" /> [% MSG.just_save | html %]</button>
-    <button type="submit" name="save" value="process" class="btn-primary  btn-lg" ><span class="fa fa-arrow-right" /> [% MSG.save_and_process | html %]</button>
+    <button type="submit" name="save" value="save" class="btn-primary  btn-lg" ><span class="fa fa-save"></span> [% MSG.just_save | html %]</button>
+    <button type="submit" name="save" value="process" class="btn-primary  btn-lg" ><span class="fa fa-arrow-right"></span> [% MSG.save_and_process | html %]</button>
   </div>
 </div>
   [% END %]
@@ -136,10 +136,10 @@ div.message-box-wrapper {
     <div class="col-sm-10 col-sm-push-2">
       <main class="page-section">
         <form action="[% receive_url.path %]" method="POST">
-          <input type="hidden" name="class" value="[% CLASS %]"/>
-          <input type="hidden" name="method" value="[% METHOD %]"/>
-          <input type="hidden" name="token" value="[% token %]"/>
-          <input type="hidden" name="order_id" value="[% order.order_id %]"/>
+          <input type="hidden" name="class" value="[% CLASS %]">
+          <input type="hidden" name="method" value="[% METHOD %]">
+          <input type="hidden" name="token" value="[% token %]">
+          <input type="hidden" name="order_id" value="[% order.order_id %]">
           <div class="row">
             <div class="col-xs-12">
               <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order | html %]</h3>
@@ -150,7 +150,7 @@ div.message-box-wrapper {
               [% END %]
               [% IF order.continue_url %]
               <div  class="continue-order-url">
-                <a href="[% order.continue_url %]"><span class="fa fa-angle-left fa-large" /> [% MSG.back_to_vendor | html %]</a>
+                <a href="[% order.continue_url %]"><span class="fa fa-angle-left fa-large"></span> [% MSG.back_to_vendor | html %]</a>
               </div>
               [% END %]
               [% IF order.all_errors %]
@@ -228,7 +228,7 @@ div.message-box-wrapper {
                   </ul>
                   [% END %]
                   [% IF record.valid %]
-                  <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down" /></a></h5>
+                  <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down"></span></a></h5>
                   <div id="record-[% record.element_id %]" class="collapse form-group">
                     <div class="row">
                       <div class="col-xs-6 col-md-6">

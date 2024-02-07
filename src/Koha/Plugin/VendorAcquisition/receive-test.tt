@@ -29,7 +29,7 @@
       <main>
         <h3>Koha:  [% MSG.module_name %]: [% MSG.send_test_data %]</h3>
         <form method="POST" action="[% receive_url %]">
-          <input type="submit" value="[% MSG.demo_submit_data %]" />
+          <input type="submit" value="[% MSG.demo_submit_data %]" >
           <dl>
             <dt><label for="order">Order</label></dt>
             <dd><textarea name="order" id="order" cols="200" rows="200">
@@ -1368,9 +1368,9 @@ MDowNFoiCn0K
 }</textarea></dd>
           </dl>
 
-          <input type="hidden" name="class" value="[% CLASS %]"/>
-          <input type="hidden" name="method" value="[% METHOD %]"/>
-          <input type="hidden" name="token" value="[% token %]"/>
+          <input type="hidden" name="class" value="[% CLASS %]">
+          <input type="hidden" name="method" value="[% METHOD %]">
+          <input type="hidden" name="token" value="[% token %]">
         </form>
       </main>
     </div>
