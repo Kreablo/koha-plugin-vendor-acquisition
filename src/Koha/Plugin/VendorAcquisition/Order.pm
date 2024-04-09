@@ -46,7 +46,7 @@ sub new {
     $self->{record_ids} = {};
 
     $self->die_on_error(0);
-    
+
     return $self;
 }
 
@@ -81,7 +81,6 @@ sub new_from_json {
         $self->_err('Could not parse JSON data: ' . $@);
     } else {
        $self->{data} = $data;
- 
 
        $self->validate();
        $self->validate_items();
@@ -280,7 +279,6 @@ sub record_duplicates {
             $records{$id} = $record;
         }
     }
-
 }
 
 sub table_naming {
@@ -433,7 +431,7 @@ sub load {
         @binds = ($self->{vendor}, $self->{order_number}, $self->{customer_number});
     }
 
-    my $sth = $dbh->prepare($sql);
+    my $sth = $dbh->prepare($sql . ' FOR UPDATE');
 
     my $rv = $sth->execute(@binds);
 

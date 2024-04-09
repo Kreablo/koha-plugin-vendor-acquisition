@@ -109,7 +109,7 @@ SET record_id = ?,
     budget_id = ?,
     ordernumber = ?
 EOF
-    my @binds = (
+    @binds = (
         $self->{record}->{record_id},
         $self->{notforloan},
         $self->{homebranch},

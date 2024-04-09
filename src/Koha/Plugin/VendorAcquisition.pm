@@ -17,6 +17,7 @@ package Koha::Plugin::VendorAcquisition;
 
 use C4::Auth;
 use C4::Matcher;
+use C4::Context;
 use JSON;
 use URI;
 use Koha::Logger;
@@ -29,14 +30,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "2.0";
+our $VERSION = "2.1";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2023-02-15",
+    date_updated    => "2024-04-06",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -252,7 +253,7 @@ EOF
 
     $self->store_data({ 'fill_out_replacementprice' => 1 });
     $self->store_data({ 'price_including_vat' => 0 });
-    
+
     return $success;
 }
 
@@ -461,7 +462,7 @@ sub configure {
             goto DISPLAY;
         }
 
-        my $rv = $dbh->do("DELETE FROM `$dvtable`");
+        $rv = $dbh->do("DELETE FROM `$dvtable`");
         if (!$rv) {
             push @errors, "Failed to clean default values table";
             $dbh->rollback;
@@ -678,6 +679,10 @@ sub vendor_order_receive {
     my $token = $self->retrieve_data('token');
     my $token_success = ($cgi->param('token') eq $token || $cgi->url_param('token') eq $token);
 
+    die "No userenv!" unless defined C4::Context->userenv;
+
+    my $userid = C4::Context->userenv->{'id'};
+
     $receive_url->query_form('class' => $self->{'class'}, method => 'vendor_order_receive', token => $token);
     $configure_url->query_form('class' => $self->{'class'}, method => 'configure');
 
@@ -791,7 +796,7 @@ sub vendor_order_receive {
                     order       => $order,
                     save        => $save,
                     already_processed => $already_processed,
-                    can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
+                    can_configure => C4::Auth::haspermission($userid, {'plugins' => 'configure'}),
                     token       => $self->retrieve_data('token')
                     );
 
