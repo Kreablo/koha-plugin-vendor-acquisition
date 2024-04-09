@@ -584,6 +584,10 @@ sub process {
             purchaseordernumber => $self->{order_number}
         };
 
+        if (C4::Context->preference("Version") >= 22.11) {
+            $orderinfo->{estimated_delivery_date} = $record->{estimated_delivery_date}
+        }
+
         if (defined($record->{rrp_price}) && $record->{rrp_price} > 0) {
             $orderinfo->{rrp} = $record->{rrp_price};
             $orderinfo->{rrp_tax_included} = $record->{rrp_price};
