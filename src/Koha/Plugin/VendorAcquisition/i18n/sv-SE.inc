@@ -14,7 +14,7 @@
    ccode = "Avdelning",
    configuration = "Konfiguration"
    configure = "Konfigurera beställningsplugin",
-   customer_id = "Kundnummer  (ange * för att ange en regel för övriga kundnummer)",
+   customer_id = "Kundnummer (ange * för att ange en regel för övriga kundnummer)",
    customer_number = "Kundnummer",
    default_budget = "Förifyllt budgetställe",
    default_ccode = "Avdelning",

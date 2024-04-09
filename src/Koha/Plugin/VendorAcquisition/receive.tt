@@ -20,7 +20,7 @@ $stash->set('dump' => sub { return Dumper($_[0]) });
 $stash->set('defined' => sub { return defined $_[0]; });
 [% END %]
 [% BLOCK select %]
-<select name="[% name | html %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %]required[% END %]>
+<select name="[% name | html %]"[% IF defined(id) && id != '' %] id="[% id %]"[% END %][% IF defined(class) %] class="form-control[% IF defined(class) && class != '' %] [% class %][% END %]"[% END %][% IF required %] required[% END %]>
   [% IF emptyval %]
   <option value="" [% IF empty(value) %]selected="selected"[% END %]>[% IF defined(emptylabel) %][% emptylabel | html %][% ELSE %][% emptyval | html %][% END %]</option>
   [% END %]
