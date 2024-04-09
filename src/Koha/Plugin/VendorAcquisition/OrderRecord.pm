@@ -423,7 +423,7 @@ sub validate_item_data {
                 my $decoded = $item_data->{MARCRecord};
 
                 my $encoded = Encode::encode('UTF-8', $decoded);
-                
+
                 $record = MARC::Record::new_from_usmarc($encoded);
                 for my $warning (@{$record->{_warnings}}) {
                     $self->_warn($warning);
@@ -488,7 +488,7 @@ sub prepare_currency {
         }
     } else {
         my $currency = Koha::Acquisition::Currencies->find({ active => 1 });
-        
+
         if (defined $currency) {
             $self->{currency} = $currency->currency;
         } else {

@@ -111,7 +111,7 @@ SET record_id = ?,
 EOF
     @binds = (
         $self->{record}->{record_id},
-        $self->{notforloan},
+        defined($self->{notforloan}) ? $self->{notforloan} : 0,
         $self->{homebranch},
         $self->{holdingbranch},
         $self->{location},
@@ -185,7 +185,7 @@ sub process {
         biblioitemnumber => $biblioitemnumber,
         homebranch => $self->{homebranch},
         holdingbranch => $self->{holdingbranch},
-        notforloan => $self->{notforloan},
+        notforloan => defined($self->{notforloan}) ? $self->{notforloan} : 0,
         location => $self->{location},
         itype => $self->{itemtype},
         ccode => $self->{ccode},
