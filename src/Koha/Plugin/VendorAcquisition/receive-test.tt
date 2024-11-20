@@ -29,6 +29,7 @@
       <main>
         <h3>Koha:  [% MSG.module_name %]: [% MSG.send_test_data %]</h3>
         <form method="POST" action="[% receive_url %]">
+          [% INCLUDE 'csrf-token.inc' %]
           <input type="submit" value="[% MSG.demo_submit_data %]" >
           <dl>
             <dt><label for="order">Order</label></dt>

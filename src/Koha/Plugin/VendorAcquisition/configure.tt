@@ -77,6 +77,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
         </div>
         <div class="row">
           <form method="POST">
+            [% INCLUDE 'csrf-token.inc' %]
             <div class="col-xs-12 col-sm-6 form-group">
               <h3>[% MSG.misc_config | html %]</h3>
               <input type="hidden" name="class" value="[% CLASS %]">
@@ -194,6 +195,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 
         <div style="display: none">
           <form>
+            [% INCLUDE 'csrf-token.inc' %]
             <div id="vendor-mapping-input-template" class="form-group">
               <hr>
               <div class="pull-right"><button class="remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>

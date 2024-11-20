@@ -29,6 +29,7 @@ use Koha::Plugin::VendorAcquisition::Order;
 use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
+use Koha::Token;
 
 our $VERSION = "2.1";
 our $API_VERSION = "1.0";
@@ -629,7 +630,8 @@ sub configure {
         branches => Koha::Libraries->search(undef, { order_by => { -asc => ['branchname'] }})->unblessed,
         itemtypes => Koha::ItemTypes->search(undef, { order_by => { -asc => ['description'] }})->unblessed,
         default_values => \@default_values,
-        can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'})
+        can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
+        csrf_token => Koha::Token->new->generate_csrf(),
         );
 
     $self->output_html( $template->output() );
@@ -797,7 +799,8 @@ sub vendor_order_receive {
                     save        => $save,
                     already_processed => $already_processed,
                     can_configure => C4::Auth::haspermission($userid, {'plugins' => 'configure'}),
-                    token       => $self->retrieve_data('token')
+                    token       => $self->retrieve_data('token'),
+                    csrf_token => Koha::Token->new->generate_csrf(),
                     );
 
                 $self->output_html( $template->output() );
@@ -814,7 +817,8 @@ sub vendor_order_receive {
                 order => $order,
                 token       => $self->retrieve_data('token'),
                 token_success => $token_success,
-                request_method => $cgi->request_method
+                request_method => $cgi->request_method,
+                csrf_token => Koha::Token->new->generate_csrf(),
                 );
 
             $self->output_html( $template->output() );
@@ -840,7 +844,8 @@ sub vendor_order_receive {
             PLUGIN_PATH => $self->get_plugin_http_path(),
             PLUGIN_DIR  => $self->bundle_path,
             LANG        => C4::Languages::getlanguage($self->{'cgi'}),
-            token       => $self->retrieve_data('token')
+            token       => $self->retrieve_data('token'),
+            csrf_token => Koha::Token->new->generate_csrf(),
             );
 
         $self->output_html( $template->output() );
@@ -867,7 +872,8 @@ sub vendor_order_receive {
           LANG        => C4::Languages::getlanguage($self->{'cgi'}),
           token       => $self->retrieve_data('token'),
           token_success => $token_success,
-          request_method => $cgi->request_method
+          request_method => $cgi->request_method,
+          csrf_token => Koha::Token->new->generate_csrf(),
           );
 
         $self->output_html( $template->output() );
