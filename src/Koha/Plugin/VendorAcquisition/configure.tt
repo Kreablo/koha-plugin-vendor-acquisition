@@ -32,6 +32,7 @@
     padding: 1em;
     margin: 1em;
     border: 2px solid green;
+    overflow-wrap: break-word;
   }
 </style>
 <title>Koha: [% MSG.module_name | html %]: [% MSG.configuration | html %]</title>

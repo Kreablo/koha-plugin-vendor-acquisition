@@ -32,8 +32,8 @@
         [% ELSIF request_method != 'POST' %]
         <p>[% MSG.receive_order_not_posted %]</p>
         [% END %]
-        [% IF MSG.errors %]
-        <h4>[% order.errors %]</h4>
+        [% IF order.errors %]
+        <h4>[% MSG.errors %]</h4>
         <ul>
         [% FOREACH error IN order.errors %]
           <li><span class="error">[% error | html %]</span></li>
