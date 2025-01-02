@@ -23,14 +23,41 @@ koha-conf.xml.
 
 ## Upgrade
 
-Unfortunately plack cannot reload perl-packages dynamically and needs
-to be restarted, so shell access to the Koha server is needed to
-complete the upgrade process.
+**Important when upgrading to Koha 24.05 or newer**: The new CSRF
+protection does not allow POST-requests without CSRF-token. We are
+currently reworking the protocol to accomodate for this, but for now a
+patch for Koha is required for using this plugin:
+
+```
+diff --git a/Koha/Middleware/CSRF.pm b/Koha/Middleware/CSRF.pm
+index 58e75c948e..690e1a13f4 100644
+--- a/Koha/Middleware/CSRF.pm
++++ b/Koha/Middleware/CSRF.pm
+@@ -63,8 +63,11 @@ sub call {
+             $error = sprintf "Programming error - op '%s' must start with 'cud-' for %s %s (referer: %s)", $original_op,
+                 $request_method, $uri, $referer;
+         } elsif ( !$csrf_token ) {
+-            $error = sprintf "Programming error - No CSRF token passed for %s %s (referer: %s)", $request_method,
+-                $uri, $referer;
++            my $u0 = URI->new($uri);
++            unless ($u0->path =~ m|/intranet/plugins/run.pl$| && $req->param('method') eq 'vendor_order_receive') {
++                $error = sprintf "Programming error - No CSRF token passed for %s %s (referer: %s)", $request_method,
++                    $uri, $referer;
++            }
+         } else {
+             unless (
+                 Koha::Token->new->check_csrf(
+```
+
+(Before Koha version 24.05 Plack could not reload perl-packages
+dynamically and needs to be restarted, so shell access to the Koha
+server is needed to complete the upgrade process.)
 
 * Go to Koha administration -> Manage plugins.
 * Click on "upload plugin" and upload the kpz-file corresponding to a
   newer version of the plugin.
-* Restart plack (if plack is enabled).
+* Restart plack, unless server is configured to automatically reload
+  plack after plugin upload.
 
 ## Security token
 
