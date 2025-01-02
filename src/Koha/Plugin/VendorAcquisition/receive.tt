@@ -140,6 +140,7 @@ div.message-box-wrapper {
           <input type="hidden" name="method" value="[% METHOD %]">
           <input type="hidden" name="token" value="[% token %]">
           <input type="hidden" name="order_id" value="[% order.order_id %]">
+          [% IF csrf_check %][% INCLUDE 'csrf-token.inc' %][% END %]
           <div class="row">
             <div class="col-xs-12">
               <h3>Koha:  [% MSG.module_name | html %]: [% MSG.receive_order | html %]</h3>

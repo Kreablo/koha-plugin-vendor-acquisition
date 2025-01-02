@@ -629,7 +629,8 @@ sub configure {
         branches => Koha::Libraries->search(undef, { order_by => { -asc => ['branchname'] }})->unblessed,
         itemtypes => Koha::ItemTypes->search(undef, { order_by => { -asc => ['description'] }})->unblessed,
         default_values => \@default_values,
-        can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'})
+        can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
+        csrf_check => C4::Context->preference("Version") >= 24.05,
         );
 
     $self->output_html( $template->output() );
@@ -797,7 +798,8 @@ sub vendor_order_receive {
                     save        => $save,
                     already_processed => $already_processed,
                     can_configure => C4::Auth::haspermission($userid, {'plugins' => 'configure'}),
-                    token       => $self->retrieve_data('token')
+                    token       => $self->retrieve_data('token'),
+                    csrf_check => C4::Context->preference("Version") >= 24.05,
                     );
 
                 $self->output_html( $template->output() );
@@ -840,7 +842,8 @@ sub vendor_order_receive {
             PLUGIN_PATH => $self->get_plugin_http_path(),
             PLUGIN_DIR  => $self->bundle_path,
             LANG        => C4::Languages::getlanguage($self->{'cgi'}),
-            token       => $self->retrieve_data('token')
+            token       => $self->retrieve_data('token'),
+            csrf_check => C4::Context->preference("Version") >= 24.05,
             );
 
         $self->output_html( $template->output() );

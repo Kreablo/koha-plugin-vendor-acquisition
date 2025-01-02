@@ -83,6 +83,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
               <input type="hidden" name="method" value="[% METHOD %]">
               <input type="hidden" name="save" value="1">
               <input type="hidden" name="token" value="[% token %]">
+              [% IF csrf_check %][% INCLUDE 'csrf-token.inc' %][% END %]
               <dl>
                 <dt><label for="record_match_rule">[% MSG.record_match_rule | html %]</label></dt>
                 <dd>

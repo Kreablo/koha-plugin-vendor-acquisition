@@ -1371,6 +1371,7 @@ MDowNFoiCn0K
           <input type="hidden" name="class" value="[% CLASS %]">
           <input type="hidden" name="method" value="[% METHOD %]">
           <input type="hidden" name="token" value="[% token %]">
+          [% IF csrf_check %][% INCLUDE 'csrf-token.inc' %][% END %]
         </form>
       </main>
     </div>
