@@ -102,7 +102,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 [% FOREACH vm IN vendor_mappings %]
                 <div>
                   <hr>
-                  <div class="pull-right"><button class="remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+                  <div class="pull-right"><button class="btn remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
                   <dl class="form-input">
                     <dt><label for="vendor-id-[% loop.index() %]">[% MSG.vendor_id | html %]</label></dt
                                                                                                       <dd><input name="vendor-id" id="vendor-id-[% loop.index() %]" type="text" value="[% vm.vendor_id | html %]" required></dd>
@@ -116,7 +116,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 </div>
                 [% END %]
               </div>
-              <button id="add-vendor-mapping" class="btn-success"><span class="fa fa-plus"></span> [% MSG.add_vendor_mapping | html %]</button>
+              <button id="add-vendor-mapping" class="btn btn-success"><span class="fa fa-plus"></span> [% MSG.add_vendor_mapping | html %]</button>
             </div>
             <div class="col-xs-12 col-sm-6">
               <h3>[% MSG.default_item_values | html  %]</h3>
@@ -124,7 +124,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 [% FOREACH dv IN default_values %]
                 <div>
                   <hr>
-                  <div class="pull-right"><button class="remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+                  <div class="pull-right"><button class="btn remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
                   <dl class="form-input">
                     <dt>
                       [% SET id0 = "customer-id-" _ loop.index() %]
@@ -171,7 +171,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
                 </div>
                 [% END %]
               </div>
-              <button id="add-default-values" class="btn-success"><span class="fa fa-plus"></span> [% MSG.add_default_values | html %]</button>
+              <button id="add-default-values" class="btn btn-success"><span class="fa fa-plus"></span> [% MSG.add_default_values | html %]</button>
             </div>
             <div  class="form-group col-xs-12">
               [% IF errors %]
@@ -189,7 +189,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
               <p id="save-success" class="text-success">[% MSG.save_success | html %]</p>
               [% END %]
               <hr>
-              <button type="submit" value="save" class="btn-primary save-button btn-lg" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>
+              <button type="submit" value="save" class="btn btn-primary save-button btn-lg" ><span class="fa fa-save"></span> [% MSG.save_configuration | html %]</button>
             </div>
           </form>
         </div>
@@ -198,7 +198,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
           <form>
             <div id="vendor-mapping-input-template" class="form-group">
               <hr>
-              <div class="pull-right"><button class="remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+              <div class="pull-right"><button class="btn remove-vendor-mapping btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
               <dl class="form-input">
                 <dt><label data-for="vendor-id">[% MSG.vendor_id | html %] </label></dt>
                 <dd><input name="vendor-id" type="text" required></dd>
@@ -214,7 +214,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
             </div>
             <div id="default-values-template" class="form-group">
               <hr>
-              <div class="pull-right"><button class="remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
+              <div class="pull-right"><button class="btn remove-default-values btn-danger"><span class="fa fa-close"></span> [% MSG.remove | html %]</button></div>
               <dl class="form-input">
                 <dt><label data-for="customer-id">[% MSG.customer_id | html %]</label></dt>
                 <dd><input name="customer-id" class="form-control" type="text" value="" required></dd>
