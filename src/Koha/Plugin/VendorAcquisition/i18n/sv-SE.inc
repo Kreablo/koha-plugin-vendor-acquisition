@@ -67,6 +67,8 @@
    record_match_rule = "Postmatchningsregel",
    record_match_error = "Det finns ingen postmatchningsregel med denna identitet!",
    record_note = "Anteckning",
+   reload_order_help = "Om beställningen inte kan behandlas på grund av fel CSRF-token, försök ladda om ordern med knappen nedan.",
+   reload_order = "Ladda om beställning",
    remove = "Ta bort",
    save_configuration = "Spara konfiguration",
    save_and_process = "Spara och behandla order",

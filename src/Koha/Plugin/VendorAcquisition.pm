@@ -30,14 +30,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "2.2";
+our $VERSION = "2.3";
 our $API_VERSION = "1.0";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2025-01-02",
+    date_updated    => "2025-01-14",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -208,7 +208,7 @@ EOF
    booksellerid INT,
    INDEX (booksellerid),
    FOREIGN KEY (booksellerid) REFERENCES aqbooksellers (id) ON UPDATE CASCADE ON DELETE CASCADE
-)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
 
     if (!$success) {
@@ -733,10 +733,24 @@ sub vendor_order_receive {
                         $save = 1;
                     } else {
                         my $json = $cgi->param('order');
-                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
-                        if ($order->valid) {
-                            $order->store;
-                            $order->load;
+                        if ($json) {
+                            $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                            if ($order->valid) {
+                                $order->store;
+                                $order->load;
+                            }
+                        } elsif ($cgi->param('order_id')) {
+                            my $order_json_table = $self->get_qualified_table_name('order_json');
+                            my $sth = $dbh->prepare("SELECT json FROM `$order_json_table` WHERE order_id=?");
+                            $sth->execute($cgi->param('order_id'));
+                            my ($json) = $sth->fetchrow_array();
+                            if ($json) {
+                                $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                                if ($order->valid) {
+                                    $order->store;
+                                    $order->load;
+                                }
+                            }
                         }
                     }
                 });

@@ -67,6 +67,8 @@
    record_match_error = "No record matcher with this identifier exists!",
    record_match_rule = "Record match rule",
    record_note = "Note",
+   reload_order = "Reload order",
+   reload_order_help = "If the order cannot be processed due to a CSRF-failure, please try to reload the order by using the below button.",
    remove = "Remove",
    save_configuration = "Save configuration",
    save_and_process = "Save and process order",
