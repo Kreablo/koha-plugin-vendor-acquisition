@@ -1,0 +1,40 @@
+{
+    "/orders": {
+        "post": {
+            "x-mojo-to": "VendorAcquisition::Controller#add_order",
+            "operationId": "add_order",
+            "tags": ["orders"],
+            "parameters": [
+                {
+                    "description": "API Key (secret token)",
+                    "in": "query",
+                    "name": "token",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "consumes": [
+                "application/x-www-form-urlencoded",
+                "multipart/form-data",
+                "application/json"
+            ],
+            "produces": [
+                "text/html"
+            ],
+            "responses": {
+                "302": {
+                    "description": "Go to reception form"
+                },
+                "400": {
+                    "description": "Bad request"
+                },
+                "403": {
+                    "description": "Permission denied"
+                },
+                "500": {
+                    "description": "Internal server error"
+                }
+            }
+        }
+    }
+}

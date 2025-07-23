@@ -6,6 +6,8 @@ src/Koha/Plugin/VendorAcquisition/configure.tt
 src/Koha/Plugin/VendorAcquisition/i18n/cs-CZ.inc
 src/Koha/Plugin/VendorAcquisition/i18n/default.inc
 src/Koha/Plugin/VendorAcquisition/i18n/sv-SE.inc
+src/Koha/Plugin/VendorAcquisition/openapi.json
+src/Koha/Plugin/VendorAcquisition/Controller.pm
 src/Koha/Plugin/VendorAcquisition/Order.pm
 src/Koha/Plugin/VendorAcquisition/order_failed.tt
 src/Koha/Plugin/VendorAcquisition/order_internalnote.tt

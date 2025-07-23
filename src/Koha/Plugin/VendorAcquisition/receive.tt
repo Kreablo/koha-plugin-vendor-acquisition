@@ -28,11 +28,16 @@ $stash->set('defined' => sub { return defined $_[0]; });
   <option value="[% hkey(item, valuekey) | html %]" [% IF value == hkey(item, valuekey) %]selected="selected"[% END %]>[% hkey(item, labelkey) | html %]</option>
   [% END %]
 </select>
+  [% IF required %]
+    <div class="invalid-feedback">
+      [% MSG.a_value_is_required | html %]
+    </div>
+  [% END %]
 [% END %]
 [% BLOCK save_buttons %]
   [% IF order.imported() %]
 <div class="col-xs-12">
-  <div id="save-buttons" class="text-warning save-buttons bg-warning">
+  <div id="save-buttons" class="save-buttons alert alert-warning">
     [% MSG.order_already_processed | html %]
   </div>
 </div>
@@ -125,6 +130,15 @@ div.message-box {
 div.message-box-wrapper {
    min-height: 28px;
 }
+.results_summary.opac_view {
+   display: none;
+}
+.validation-error {
+   display: none;
+}
+form:invalid .validation-error {
+   display: block;
+}
 </style>
 [% INCLUDE 'doc-head-close.inc' %]
 <body>
@@ -135,29 +149,12 @@ div.message-box-wrapper {
   <div class="row">
     <div class="col-sm-10 col-sm-push-2">
       <main class="page-section">
-        <div class="bg-info container">
-          <form method="POST">
-            <input type="hidden" name="class" value="[% CLASS %]">
-            <input type="hidden" name="method" value="[% METHOD %]">
-            <input type="hidden" name="token" value="[% token %]">
-            <input type="hidden" name="order_id" value="[% order.order_id %]">
-            <div class="row">
-              <div class="col-xs-12">
-                 <p><i class="fa fa-circle-exclamation fa-2xl"></i> <string>[% MSG.reload_order_help %]</strong></p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-xs-12">
-                <button type="submit" class="btn btn-info"><i class="fa fa-rotate-right"></i> [% MSG.reload_order %]</button>
-              </div>
-            </div>
-          </form>
-        </div>
-        <form action="[% receive_url.path %]" method="POST">
-          <input type="hidden" name="class" value="[% CLASS %]">
-          <input type="hidden" name="method" value="[% METHOD %]">
-          <input type="hidden" name="token" value="[% token %]">
-          <input type="hidden" name="order_id" value="[% order.order_id %]">
+        <form method="POST" class="needs-validation">
+          <input type="hidden" name="class" value="[% CLASS | html %]">
+          <input type="hidden" name="method" value="[% METHOD | html %]">
+          <input type="hidden" name="token" value="[% token | html %]">
+          <input type="hidden" name="order_id" value="[% order.order_id | html %]">
+          <input type="hidden" name="order_json_id" value="[% order_json_id | html %]">
           [% IF csrf_check %][% INCLUDE 'csrf-token.inc' %][% END %]
           <div class="row">
             <div class="col-xs-12">
@@ -184,13 +181,13 @@ div.message-box-wrapper {
               [% END %]
               <div class="message-box-wrapper">
               [% IF save && !order.all_errors %]<div class="message-box bg-success text-success"><span class="fa fa-check"></span>&nbsp;<span id="save-success">[% MSG.order_save_success | html %]</span></div>[% END %]
-              [% IF order.imported %]<div class="message-box bg-warning text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed | html %]</span></div>[% END %]
+              [% IF order.imported %]<div class="message-box alert alert-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;<span id="already-processed">[% MSG.order_already_processed | html %]</span></div>[% END %]
               [% IF order.warnings %]
-              <div class="bg-warning text-warning">
+              <div class="alert alert-warning">
                 <h4>[% MSG.warnings | html %]</h4>
                 <ul>
                   [% FOREACH warning IN order.warnings %]
-                  <li><span class="text-warning"><span class="fa fa-exclamation-triangle"></span>&nbsp;[% warning | html %]</span></li>
+                  <li><span><span class="fa fa-exclamation-triangle"></span>&nbsp;[% warning | html %]</span></li>
                   [% END %]
                 </ul>
               </div>
@@ -242,13 +239,20 @@ div.message-box-wrapper {
                   <h5>[% MSG.warnings | html %]</h5>
                   <ul>
                     [% FOREACH warning IN record.warnings %]
-                    <li><span class="text-warning">[% warning | html %]</span></li>
+                    <li><span>[% warning | html %]</span></li>
                     [% END %]
                   </ul>
                   [% END %]
                   [% IF record.valid %]
-                  <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" data-bs-toggle="collapse" aria-expanded="false" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down"></span></a></h5>
-                  <div id="record-[% record.element_id %]" class="collapse form-group">
+                     [% SET items_valid=1 %]
+                     [% FOREACH record_item IN record.items %]
+                       [% IF !(record_item.itemtype && record_item.homebranch && record_item.holdingbranch) %]
+                          [% SET items_valid=0 %]
+                       [% END %]
+                     [% END %]
+                     items_valid: [% items_valid | html %]
+                  <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" data-bs-toggle="collapse" aria-expanded="[% IF items_valid %]false[% ELSE %]true[% END %]" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down"></span></a></h5>
+                  <div id="record-[% record.element_id %]" class="[% IF items_valid %]collapse [% END %]form-group">
                     <div class="row">
                       <div class="col-xs-6 col-md-6">
                         <dl class="form-input">
@@ -365,6 +369,11 @@ div.message-box-wrapper {
                 [% END %]
               </ul>
             </div>
+          </div>
+          <div class="row validation-error invalid-feedback">
+           <div class="col-xs-12 alert alert-danger" role="alert">
+              [% MSG.form_validation_error | html %]
+           </div>
           </div>
           <div class="row">
             [% PROCESS save_buttons %]

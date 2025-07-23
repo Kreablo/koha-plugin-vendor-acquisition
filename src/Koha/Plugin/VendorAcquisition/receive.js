@@ -10,8 +10,20 @@
     };
     load();
     var init = function init () {
-        setTimeout(function () { $('#save-success').parent().fadeOut() }, 3000);
-        setTimeout(function () { $('#already-processed').parent().fadeOut() }, 3000);
+        setTimeout(function () { $('#save-success').parent().fadeOut(); }, 3000);
+        setTimeout(function () { $('#already-processed').parent().fadeOut(); }, 3000);
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
         var $baskettype = $('#basket-type-selector input[name="basket-type"]');
         var basketinput = function () {
             var type = $('#basket-type-selector input[name="basket-type"]:checked').val();

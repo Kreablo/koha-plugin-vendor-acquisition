@@ -150,6 +150,7 @@ sub set_basketno {
 sub update_from_cgi {
     my ($self, $cgi) = @_;
 
+    my $dbh   = C4::Context->dbh;
     my $basketType = $cgi->param('basket-type');
     $self->{basket_type} = $basketType;
 
@@ -173,6 +174,14 @@ sub update_from_cgi {
     }
 
     $self->record_duplicates;
+
+    my $order_json_id = $cgi->param('order_json_id');
+
+    if (defined $order_json_id) {
+        my $order_json_table = $self->table_naming('order_json');
+        my $sth_json = $dbh->prepare("UPDATE `$order_json_table` SET order_id=? WHERE order_json_id=? AND order_id IS NULL AND NOT EXISTS (SELECT * FROM `$order_json_table` WHERE order_id=?)");
+        my $rv = $sth_json->execute($self->{order_id}, $order_json_id, $self->{order_id});
+    }
 }
 
 sub new_from_orderid {
@@ -253,12 +262,16 @@ sub validate_items {
     for my $item (@{$self->{data}->{Items}}) {
         $self->validate_item($item);
     }
+
+    warn "number of records: " . scalar(@{$self->{records}});
 }
 
 sub validate_item {
     my ($self, $item_data) = @_;
 
     my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
+
+    warn "pusing a record";
 
     push @{$self->{records}}, $record;
 }
@@ -390,17 +403,13 @@ EOF
 
     my $rv = $sth->execute(@binds);
 
+    if (!defined $self->{order_id}) {
+        $self->{order_id} = $dbh->last_insert_id();
+    }
+
     if (!$rv) {
         $self->_err("Failed to store order data: " . $dbh->errstr);
     }
-
-    if (!defined $self->{order_id}) {
-        $self->{order_id} = $dbh->last_insert_id(undef, undef, $ordertable, undef);
-        my $order_json_table = $self->table_naming('order_json');
-        my $sth_json = $dbh->prepare("INSERT IGNORE INTO `$order_json_table` (order_id, json) VALUES (?, ?)");
-        my $rv = $sth_json->execute($self->{order_id}, $self->{json});
-    }
-
 
     for my $record (@{$self->{records}}) {
         $record->store;
@@ -829,7 +838,7 @@ sub cleanup {
 
     for my $record (@{$self->{records}}) {
         $record->cleanup;
-    }    
+    }
 }
 
 

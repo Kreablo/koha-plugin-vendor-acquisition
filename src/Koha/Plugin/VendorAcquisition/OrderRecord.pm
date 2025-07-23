@@ -105,41 +105,43 @@ sub prepare_record {
             fix_amps => 0,
             branches => {},
             itemtypes => {}
-        });
+                                                              });
     } else {
         $self->{record_display} = C4::XSLT::XSLTParse4Display(undef, $self->{record}, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
     }
 
-    for my $d ($self->matcher->get_matches($self->{record}, 10)) {
-        my $duplicate = {
-            biblionumber => $d->{record_id},
-            score => $d->{score},
-            selected => 0
-        };
-        my $biblio = Koha::Biblios->find($d->{record_id});
-        if (!$biblio) {
-            $self->_warn("Failed to load matching record " . $d->{record_id});
-            next;
-        }
-        my $record = $biblio->metadata->record;
+    if (defined $self->matcher) {
+        for my $d ($self->matcher->get_matches($self->{record}, 10)) {
+            my $duplicate = {
+                biblionumber => $d->{record_id},
+                score => $d->{score},
+                selected => 0
+            };
+            my $biblio = Koha::Biblios->find($d->{record_id});
+            if (!$biblio) {
+                $self->_warn("Failed to load matching record " . $d->{record_id});
+                next;
+            }
+            my $record = $biblio->metadata->record;
 
-        if ($is2111) {
-            $duplicate->{record_display} = C4::XSLT::XSLTParse4Display({
-                record => $record,
-                xsl_syspref => 'XSLTDetailsDisplay',
-                fix_amps => 0,
-                branches => {},
-                itemtypes => {}
-            });
-        } else {
-            $duplicate->{record_display} = C4::XSLT::XSLTParse4Display(undef, $record, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
-        }
+            if ($is2111) {
+                $duplicate->{record_display} = C4::XSLT::XSLTParse4Display({
+                    record => $record,
+                    xsl_syspref => 'XSLTDetailsDisplay',
+                    fix_amps => 0,
+                    branches => {},
+                    itemtypes => {}
+                                                                           });
+            } else {
+                $duplicate->{record_display} = C4::XSLT::XSLTParse4Display(undef, $record, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
+            }
 
-        if ($self->{biblionumber} eq $duplicate->{biblionumber}) {
-            $duplicate->{selected} = 1;
-        }
+            if ($self->{biblionumber} eq $duplicate->{biblionumber}) {
+                $duplicate->{selected} = 1;
+            }
 
-        push @{$self->{duplicates}}, $duplicate;
+            push @{$self->{duplicates}}, $duplicate;
+        }
     }
 }
 

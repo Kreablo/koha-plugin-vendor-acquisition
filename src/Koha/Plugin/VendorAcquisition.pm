@@ -30,14 +30,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "2.3";
-our $API_VERSION = "1.0";
+our $VERSION = "3.0";
+our $API_VERSION = "1.1";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2025-06-10",
+    date_updated    => "2025-08-23",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -239,7 +239,8 @@ EOF
     my $order_json_table = $self->get_qualified_table_name('order_json');
     $success = $dbh->do("CREATE TABLE IF NOT EXISTS `$order_json_table`" . <<EOF);
 (
-   order_id INT PRIMARY KEY NOT NULL,
+   order_json_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   order_id INT DEFAULT NULL UNIQUE,
    json LONGTEXT,
    FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -253,6 +254,7 @@ EOF
 
     $self->store_data({ 'fill_out_replacementprice' => 1 });
     $self->store_data({ 'price_including_vat' => 0 });
+    $self->store_data({ 'intra_host' => _intra_host() });
 
     return $success;
 }
@@ -361,7 +363,6 @@ EOF
         $dbh->do("UPDATE `$itemtable` SET ordernumber = (SELECT ordernumber FROM `$recordtable` WHERE `$itemtable`.record_id=`$recordtable`.record_id)");
         $dbh->do("ALTER TABLE `$recordtable` DROP FOREIGN KEY IF EXISTS `${recordtable}_ibfk_4`");
         $dbh->do("ALTER TABLE `$recordtable` DROP COLUMN IF EXISTS ordernumber");
-
     }
 
     if (version_cmp($database_version, '2.0') < 0) {
@@ -373,7 +374,45 @@ EOF
         }
     }
 
+    if (version_cmp($database_version, '3.0') < 0) {
+        $self->store_data({ 'intra_host' => _intra_host() });
+        my $order_json_table = $self->get_qualified_table_name('order_json');
+        my $ordertable = $self->get_qualified_table_name('order');
+        $success = $dbh->do("CREATE TEMPORARY TABLE `${order_json_table}_tmp`" . <<"EOF");
+(
+   order_id INT,
+   json LONGTEXT
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+EOF
+        $success = $dbh->do("INSERT INTO `${order_json_table}_tmp` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}`");
+        $success = $dbh->do("DROP TABLE `${order_json_table}`");
+        $success = $dbh->do("CREATE TABLE IF NOT EXISTS `${order_json_table}`" . <<"EOF");
+(
+   order_json_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   order_id INT DEFAULT NULL UNIQUE,
+   json LONGTEXT,
+   FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+EOF
+        $success = $dbh->do("INSERT INTO `${order_json_table}` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}_tmp`");
+    }
+
     return $success;
+}
+
+sub api_routes {
+    my ( $self, $args ) = @_;
+
+    my $spec_str = $self->mbf_read('openapi.json');
+    my $spec     = decode_json($spec_str);
+
+    return $spec;
+}
+
+sub api_namespace {
+    my ($self) = @_;
+
+    return 'vendoracq';
 }
 
 sub configure {
@@ -397,7 +436,18 @@ sub configure {
         # in this package and in the parent package.  We clean this up
         # when we configure the plugin.
 
-        if (! grep {$_ eq $method->plugin_method} ('configure', 'install', 'uninstall', 'upgrade', 'enable', 'disable', 'vendor_order_receive', 'intranet_js')) {
+        if (! grep {$_ eq $method->plugin_method} (
+                  'api_routes',
+                  'api_namespace',
+                  'configure',
+                  'disable',
+                  'enable',
+                  'install',
+                  'intranet_js',
+                  'uninstall',
+                  'upgrade',
+                  'vendor_order_receive',
+             )) {
             $method->delete;
         }
     }
@@ -406,12 +456,17 @@ sub configure {
     my @lang_split = split /_|-/, $lang;
 
     my $receive_url =
-      URI->new( C4::Context->preference('staffClientBaseURL')
-                . '/cgi-bin/koha/plugins/run.pl');
+        URI->new( $self->retrieve_data('intra_host') . '/api/v1/contrib/vendoracq/orders' );
 
     my $token = $self->retrieve_data('token');
 
-    $receive_url->query_form('class' => $self->{'class'}, method => 'vendor_order_receive', token => $token);
+    $receive_url->query_form(token => $token);
+
+     my $demo_url =
+      URI->new( $self->retrieve_data('intra_host')
+                . '/cgi-bin/koha/plugins/run.pl');
+
+    $demo_url->query_form('class' => $self->{'class'}, method => 'vendor_order_receive', token => $token, demomode => 1);
 
     my $record_match_rule = $cgi->param('record_match_rule');
 
@@ -563,12 +618,22 @@ sub configure {
             }
         }
 
-        $self->store_data({
+        my $data = {
             demomode => scalar($cgi->param('demomode')),
             fill_out_replacementprice => scalar($cgi->param('fill_out_replacementprice')),
             price_including_vat => scalar($cgi->param('price_including_vat')),
             record_match_rule => $record_match_rule,
-        });
+        };
+
+        my $cgi_intra_host = $cgi->param('intra_host');
+        if ( ! defined URI->new( $cgi_intra_host ) ) {
+            push @errors, "Invalid intra base url: '" . $cgi_intra_host . "'";
+        } else {
+            $data->{intra_host} = $cgi_intra_host;
+            $receive_url = URI->new( $data->{intra_host} . '/api/v1/contrib/vendoracq/orders' );
+        }
+
+        $self->store_data($data);
 
         $save_success = 1;
     }
@@ -617,6 +682,7 @@ sub configure {
         demomode => $self->retrieve_data('demomode'),
         fill_out_replacementprice => $self->retrieve_data('fill_out_replacementprice'),
         price_including_vat => $self->retrieve_data('price_including_vat'),
+        intra_host => $self->retrieve_data('intra_host'),
         booksellers => $booksellers->unblessed,
         budgets => $budgets,
         matchers => \@matchers,
@@ -631,6 +697,7 @@ sub configure {
         default_values => \@default_values,
         can_configure => C4::Auth::haspermission(C4::Context->userenv->{'id'}, {'plugins' => 'configure'}),
         csrf_check => C4::Context->preference("Version") >= 24.05,
+        demo_url => $demo_url
         );
 
     $self->output_html( $template->output() );
@@ -671,8 +738,7 @@ sub vendor_order_receive {
     my @lang_split = split /_|-/, $lang;
 
     my $receive_url =
-      URI->new( C4::Context->preference('staffClientBaseURL')
-                . '/cgi-bin/koha/plugins/run.pl');
+      URI->new( $self->retrieve_data('intra_host') . '/api/v1/contrib/vendoracq/orders' );
     my $configure_url =
       URI->new( C4::Context->preference('staffClientBaseURL')
                 . '/cgi-bin/koha/plugins/run.pl');
@@ -684,12 +750,10 @@ sub vendor_order_receive {
 
     my $userid = C4::Context->userenv->{'id'};
 
-    $receive_url->query_form('class' => $self->{'class'}, method => 'vendor_order_receive', token => $token);
+    $receive_url->query_form(token => $token);
     $configure_url->query_form('class' => $self->{'class'}, method => 'configure');
 
-
-    if ($cgi->request_method eq 'POST') {
-
+    if ($cgi->request_method eq 'POST' || $cgi->param('order_json_id')) {
         my $order = {};
 
         my $save = 0;
@@ -702,68 +766,53 @@ sub vendor_order_receive {
 
             my $schema = Koha::Database->schema;
 
-            eval {
-                $schema->txn_do(sub {
-                    if ($cgi->param('save') eq 'save') {
-                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                        $order->update_from_cgi($cgi);
-                        if ($order->valid) {
-                            $order->store;
-                        }
-                        $save = 1;
-                    } elsif ($cgi->param('save') eq 'process') {
-                        $order = Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
-                        $order->update_from_cgi($cgi);
-                        $order->start_die_on_error;
-                        if ($order->valid) {
-                            $order->store;
-                        } else {
-                            die "Order is invalid!";
-                        }
-                        $already_processed = $order->imported;
-                        if (!$already_processed) {
-                            $order->process($lang, $self);
+            if ($cgi->request_method eq 'POST') {
+                eval {
+                    $schema->txn_do(sub {
+                        if ($cgi->param('save') eq 'save') {
+                            $order = $self->_init_order;
+                            $order->update_from_cgi($cgi);
+                            if ($order->valid) {
+                                $order->store;
+                            }
+                            $save = 1;
+                        } elsif ($cgi->param('save') eq 'process') {
+                            $order = $self->_init_order;
+                            $order->update_from_cgi($cgi);
+                            $order->start_die_on_error;
                             if ($order->valid) {
                                 $order->store;
                             } else {
                                 die "Order is invalid!";
                             }
-                        }
-                        $order->stop_die_on_error;
-                        $save = 1;
-                    } else {
-                        my $json = $cgi->param('order');
-                        if ($json) {
-                            $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
-                            if ($order->valid) {
-                                $order->store;
-                                $order->load;
-                            }
-                        } elsif ($cgi->param('order_id')) {
-                            my $order_json_table = $self->get_qualified_table_name('order_json');
-                            my $sth = $dbh->prepare("SELECT json FROM `$order_json_table` WHERE order_id=?");
-                            $sth->execute($cgi->param('order_id'));
-                            my ($json) = $sth->fetchrow_array();
-                            if ($json) {
-                                $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                            $already_processed = $order->imported;
+                            if (!$already_processed) {
+                                $order->process($lang, $self);
                                 if ($order->valid) {
                                     $order->store;
-                                    $order->load;
+                                } else {
+                                    die "Order is invalid!";
                                 }
                             }
+                            $order->stop_die_on_error;
+                            $save = 1;
+                        } else {
+                            $order = $self->_init_order;
                         }
-                    }
-                });
-            };
+                    });
+                };
 
-            if ($@) {
-                $order->{die_on_error} = 0;
+                if ($@) {
+                    $order->{die_on_error} = 0;
 
-                my $msg = "Failed to commit order data: " . $@;
-                my $logger = Koha::Logger->get;
+                    my $msg = "Failed to commit order data: " . $@;
+                    my $logger = Koha::Logger->get;
 
-                $logger->error($msg);
-                push @{$order->{errors}}, $msg;
+                    $logger->error($msg);
+                    push @{$order->{errors}}, $msg;
+                }
+            } else {
+                $order = $self->_init_order;
             }
 
         } else {
@@ -809,6 +858,7 @@ sub vendor_order_receive {
                     PLUGIN_DIR  => $self->bundle_path,
                     LANG        => C4::Languages::getlanguage($self->{'cgi'}),
                     order       => $order,
+                    order_json_id => $cgi->param('order_json_id'),
                     save        => $save,
                     already_processed => $already_processed,
                     can_configure => C4::Auth::haspermission($userid, {'plugins' => 'configure'}),
@@ -836,7 +886,7 @@ sub vendor_order_receive {
             $self->output_html( $template->output() );
         }
 
-    } elsif ($self->retrieve_data('demomode')) {
+    } elsif ($self->retrieve_data('demomode') || $cgi->param('demomode')) {
         my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
             template_name   => $self->mbf_path('receive-test.tt'),
             query => $cgi,
@@ -889,6 +939,70 @@ sub vendor_order_receive {
 
         $self->output_html( $template->output() );
     }
+}
+
+sub _intra_host {
+    my $intraBaseURL = C4::Context->preference('staffClientBaseURL');
+    if (!defined $intraBaseURL) {
+        return "http://localhost:8081";
+    }
+    my $baseUrl = URI->new($intraBaseURL);
+    if ($baseUrl->scheme eq 'https') {
+        if ($baseUrl->port != 443) {
+            return 'https://' . $baseUrl->host_port;
+        } else {
+            return 'https://' . $baseUrl->host;
+        }
+    } elsif ($baseUrl->scheme eq 'http') {
+        if ($baseUrl->port != 80) {
+            return 'http://' . $baseUrl->host_port;
+        } else {
+            return 'http://' . $baseUrl->host;
+        }
+    }
+    return $baseUrl->scheme . '://' . $baseUrl->host_port;
+}
+
+sub _init_order {
+    my $self = shift;
+    my $cgi = $self->{'cgi'};
+    my $lang = C4::Languages::getlanguage($cgi);
+    my $dbh   = C4::Context->dbh;
+    if ($cgi->param('order_id')) {
+        return Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($cgi->param('order_id')));
+    } else {
+        if ($cgi->param('order_json_id')) {
+            my $order_json_table = $self->get_qualified_table_name('order_json');
+            my $sth = $dbh->prepare("SELECT json FROM `$order_json_table` WHERE order_json_id=?");
+            my $order_json_id = $cgi->param('order_json_id');
+            $sth->execute($order_json_id);
+            my ($json) = $sth->fetchrow_array();
+            if ($json) {
+                my $order = Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+                my $vendor = $order->{'vendor'};
+                my $customer_number = $order->{'customer_number'};
+                my $order_number = $order->{'order_number'};
+                if ($vendor && $customer_number && $order_number) {
+                    my $order_table = $self->get_qualified_table_name('order');
+                    my $sth_oid = $dbh->prepare("SELECT order_id FROM `$order_table` WHERE vendor = ? AND order_number = ? AND customer_number = ?");
+                    $sth_oid->execute($vendor, $order_number, $customer_number);
+                    my ($order_id) = $sth_oid->fetchrow_array();
+                    if ($order_id) {
+                        return Koha::Plugin::VendorAcquisition::Order->new_from_orderid($self, $lang, scalar($order_id));
+                    } elsif ($order->valid) {
+                        $dbh->do("UPDATE `$order_json_table` SET order_id=? WHERE order_json_id=?", { 'RaiseError' => 1 }, $order->{order_id}, $order_json_id);
+                    }
+                    return $order;
+                }
+            }
+        } elsif ($cgi->param('order')) {
+            my $json = $cgi->param('order');
+            if ($json) {
+                return Koha::Plugin::VendorAcquisition::Order->new_from_json($self, $lang, $json);
+            }
+        }
+    }
+    return undef;
 }
 
 1;

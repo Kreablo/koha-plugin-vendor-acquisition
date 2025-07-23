@@ -1367,11 +1367,6 @@ MDowNFoiCn0K
    &quot;WhenOrderedTimestamp&quot; : &quot;2021-01-18T14:50:04Z&quot;
 }</textarea></dd>
           </dl>
-
-          <input type="hidden" name="class" value="[% CLASS %]">
-          <input type="hidden" name="method" value="[% METHOD %]">
-          <input type="hidden" name="token" value="[% token %]">
-          [% IF csrf_check %][% INCLUDE 'csrf-token.inc' %][% END %]
         </form>
       </main>
     </div>
