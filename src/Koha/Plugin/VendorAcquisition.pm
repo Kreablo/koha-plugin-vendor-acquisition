@@ -816,7 +816,7 @@ sub vendor_order_receive {
                     csrf_check => C4::Context->preference("Version") >= 24.05,
                     );
 
-                $self->output_html( $template->output() );
+                $self->output_html( $template->output(), undef, undef, $cookie );
             }
         } else {
             my $template = $self->get_template({file => 'order_failed.tt'});
@@ -860,7 +860,7 @@ sub vendor_order_receive {
             csrf_check => C4::Context->preference("Version") >= 24.05,
             );
 
-        $self->output_html( $template->output() );
+        $self->output_html( $template->output(), undef, undef, $cookie );
 
     } else {
       my ($template, $loggedinuser, $cookie) = C4::Auth::get_template_and_user({
@@ -887,7 +887,7 @@ sub vendor_order_receive {
           request_method => $cgi->request_method
           );
 
-        $self->output_html( $template->output() );
+        $self->output_html( $template->output(), undef, undef, $cookie );
     }
 }
 
