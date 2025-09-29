@@ -37,7 +37,7 @@ our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2025-08-23",
+    date_updated    => "2025-08-29",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -384,7 +384,7 @@ EOF
    json LONGTEXT
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
-        $success = $dbh->do("INSERT INTO `${order_json_table}_tmp` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}`");
+        $success = $dbh->do("INSERT IGNORE INTO `${order_json_table}_tmp` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}`");
         $success = $dbh->do("DROP TABLE `${order_json_table}`");
         $success = $dbh->do("CREATE TABLE IF NOT EXISTS `${order_json_table}`" . <<"EOF");
 (
@@ -394,7 +394,7 @@ EOF
    FOREIGN KEY (order_id) REFERENCES `$ordertable` (order_id) ON UPDATE CASCADE ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 EOF
-        $success = $dbh->do("INSERT INTO `${order_json_table}` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}_tmp`");
+        $success = $dbh->do("INSERT IGNORE INTO `${order_json_table}` (`order_id`, `json`) SELECT `order_id`, `json` FROM `${order_json_table}_tmp`");
     }
 
     return $success;
@@ -858,7 +858,7 @@ sub vendor_order_receive {
                     PLUGIN_DIR  => $self->bundle_path,
                     LANG        => C4::Languages::getlanguage($self->{'cgi'}),
                     order       => $order,
-                    order_json_id => $cgi->param('order_json_id'),
+                    order_json_id => scalar $cgi->param('order_json_id'),
                     save        => $save,
                     already_processed => $already_processed,
                     can_configure => C4::Auth::haspermission($userid, {'plugins' => 'configure'}),

@@ -28,8 +28,6 @@ use Encode;
 use utf8;
 require Koha::Biblios;
 
-my $element_id = 1;
-
 sub new {
     my ( $class, $plugin, $lang, $order ) = @_;
 
@@ -43,11 +41,17 @@ sub new {
     $self->{items} = [];
     $self->{duplicate} = undef;
     $self->{duplicates} = [];
-    $self->{element_id} = $element_id++;
+    $self->{element_id} = scalar(@{$order->{records}}) + 1;
+    $self->{record_id} = 'tmp' . scalar(@{$order->{records}});
 
     return $self;
 }
 
+sub _perm_id {
+    my $id = shift;
+
+    return (defined $id) && ! ($id =~ /^tmp/);
+}
 
 sub new_from_json {
     my ( $class, $plugin, $lang, $order, $item_data ) = @_;
@@ -86,7 +90,7 @@ sub new_from_hash {
     $self->prepare_record;
     $self->prepare_currency;
 
-    if (defined $self->{record_id}) {
+    if (_perm_id($self->{record_id})) {
         $self->load_items;
     }
 
@@ -105,7 +109,7 @@ sub prepare_record {
             fix_amps => 0,
             branches => {},
             itemtypes => {}
-                                                              });
+        });
     } else {
         $self->{record_display} = C4::XSLT::XSLTParse4Display(undef, $self->{record}, 'XSLTDetailsDisplay', 0, 0, '', 'default', $self->{lang}, undef);
     }
@@ -161,10 +165,6 @@ sub update_from_json {
     $self->{item_data} = $item_data;
     $self->validate_item_data;
 
-    if (defined $self->{record_id}) {
-        $self->load_items;
-    }
-
     if (scalar(@{$self->{duplicates}}) > 0) {
         $self->{merge_biblionumber} = $self->{duplicates}->[0]->{biblionumber};
     }
@@ -207,7 +207,6 @@ sub fields {
 
 sub load_record_id {
     my $self = shift;
-
 
     my $name = $self->record_name;
     if (defined $name) {
@@ -257,7 +256,7 @@ sub store {
     my $sql;
     my @binds = ();
 
-    if (defined $self->{record_id}) {
+    if (_perm_id($self->{record_id})) {
         $sql = "UPDATE `$recordtable` ";
     } else {
         $sql = "INSERT INTO `$recordtable` ";
@@ -326,7 +325,7 @@ EOF
             $self->{merge_biblionumber}
         );
 
-    if (defined $self->{record_id}) {
+    if (_perm_id($self->{record_id})) {
         $sql .= " WHERE record_id = ?";
         push @binds, $self->{record_id};
     }
@@ -339,7 +338,7 @@ EOF
         $self->_err("Failed to save record: " . $dbh->errstr);
     }
 
-    if (!defined $self->{record_id}) {
+    if (!_perm_id($self->{record_id})) {
         $self->{record_id} = $dbh->last_insert_id(undef, undef, $recordtable, undef);
     }
 
@@ -457,11 +456,11 @@ sub validate_item_data {
     $self->prepare_record;
     $self->prepare_currency;
 
-    if (!defined $self->{record_id}) {
+    if (!_perm_id($self->{record_id})) {
         $self->load_record_id;
     }
 
-    if (defined $self->{record_id}) {
+    if (_perm_id($self->{record_id})) {
         $self->load_items;
     }
 
@@ -643,7 +642,7 @@ sub record_name {
     my $self = shift;
 
     my $id;
-    
+
     if (defined $self->{biblioid_standard} && defined $self->{biblioid}) {
         $id = 'st|' . $self->{biblioid_standard} . '|' . $self->{biblioid};
     } elsif (defined $self->{isbn}) {

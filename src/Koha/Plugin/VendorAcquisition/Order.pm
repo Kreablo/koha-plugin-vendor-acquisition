@@ -42,7 +42,6 @@ sub new {
     $self->{warnings} = [];
     $self->{lang} = $lang;
     $self->{records} = [];
-    $self->{is_new} = 0;
     $self->{record_ids} = {};
 
     $self->die_on_error(0);
@@ -178,10 +177,9 @@ sub update_from_cgi {
     my $order_json_id = $cgi->param('order_json_id');
 
     if (defined $order_json_id) {
-        my $order_json_table = $self->table_naming('order_json');
-        my $sth_json = $dbh->prepare("UPDATE `$order_json_table` SET order_id=? WHERE order_json_id=? AND order_id IS NULL AND NOT EXISTS (SELECT * FROM `$order_json_table` WHERE order_id=?)");
-        my $rv = $sth_json->execute($self->{order_id}, $order_json_id, $self->{order_id});
+        $self->{order_json_id} = $order_json_id;
     }
+
 }
 
 sub new_from_orderid {
@@ -262,16 +260,12 @@ sub validate_items {
     for my $item (@{$self->{data}->{Items}}) {
         $self->validate_item($item);
     }
-
-    warn "number of records: " . scalar(@{$self->{records}});
 }
 
 sub validate_item {
     my ($self, $item_data) = @_;
 
     my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
-
-    warn "pusing a record";
 
     push @{$self->{records}}, $record;
 }
@@ -417,6 +411,14 @@ EOF
 
     $self->delete_records;
 
+    my $order_json_id = $self->{'order_json_id'};
+
+    if (defined $order_json_id) {
+        my $order_json_table = $self->table_naming('order_json');
+        my $sth_json = $dbh->prepare("UPDATE `$order_json_table` SET order_id=? WHERE order_json_id=? AND order_id IS NULL AND NOT EXISTS (SELECT * FROM `$order_json_table` WHERE order_id=?)");
+        my $rv = $sth_json->execute($self->{order_id}, $order_json_id, $self->{order_id});
+    }
+
     $self->stop_die_on_error;
 }
 
@@ -432,7 +434,7 @@ sub load {
 
     my $cols = 'order_id, order_number, invoice_number, customer_number, api_version, continue_url, vendor, when_ordered, order_note, budget_id, basketno, basketname';
 
-    if (defined $self->{order_id}) {
+    if (defined $self->{order_id} && $self->{order_id} ne '') {
         $sql = "SELECT $cols FROM `$ordertable` WHERE order_id = ?";
         @binds = ($self->{order_id});
     } else {
@@ -481,8 +483,6 @@ sub load {
             $self->{when_ordered_str} = output_pref($self->{when_ordered});
         }
         $self->record_duplicates;
-    } else {
-        $self->{is_new} = 1;
     }
 }
 
@@ -787,7 +787,7 @@ sub _err {
     if ($self->die_on_error) {
         die $msg;
     }
-    
+
     $logger->error($msg);
 }
 

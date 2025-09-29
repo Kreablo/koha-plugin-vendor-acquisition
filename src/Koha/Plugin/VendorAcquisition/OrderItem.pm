@@ -33,6 +33,8 @@ sub new {
     $self->{itemcallnumber} = $record->{callnumber};
     $self->{price} = $record->{price};
 
+    $self->{item_id} = 'tmp' . scalar(@{$record->{items}});
+
     return $self;
 }
 
@@ -57,6 +59,12 @@ sub update_from_cgi {
             $self->{$field} = $val;
         }
     }
+}
+
+sub _perm_id {
+    my $id = shift;
+
+    return (defined $id) && ! ($id =~ /^tmp/);
 }
 
 sub initiate {
@@ -88,7 +96,7 @@ sub store {
     my $sql;
     my @binds = ();
 
-    if (defined $self->{item_id}) {
+    if (_perm_id($self->{item_id})) {
         $sql = "UPDATE `$itemtable` ";
     } else {
         $sql = "INSERT INTO `$itemtable` ";
@@ -125,7 +133,7 @@ EOF
         $self->{ordernumber}
         );
 
-    if (defined $self->{item_id}) {
+    if (_perm_id($self->{item_id})) {
         $sql .= ' WHERE item_id = ?';
         push @binds, $self->{item_id};
     }
@@ -138,7 +146,7 @@ EOF
         $self->_err("Failed to save item: " . $dbh->errstr);
     }
 
-    if (!defined $self->{item_id}) {
+    if (!_perm_id($self->{item_id})) {
         $self->{item_id} = $dbh->last_insert_id(undef, undef, $itemtable, undef);
     }
 }
@@ -146,7 +154,7 @@ EOF
 sub delete {
     my $self = shift;
 
-    return if !defined $self->{item_id};
+    return if !_perm_id($self->{item_id});
 
     my $dbh   = C4::Context->dbh;
 
