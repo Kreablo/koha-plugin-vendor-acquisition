@@ -33,7 +33,7 @@ sub new {
     $self->{itemcallnumber} = $record->{callnumber};
     $self->{price} = $record->{price};
 
-    $self->{item_id} = 'tmp' . scalar(@{$record->{items}});
+    $self->{item_id} = 'tmp' . scalar(@{$record->{order}->{records}}) . '-' . scalar(@{$record->{items}});
 
     return $self;
 }
