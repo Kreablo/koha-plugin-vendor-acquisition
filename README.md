@@ -25,6 +25,9 @@ koha-conf.xml.
 
 ### Important when upgrading to version 3.0 or later from an earlier release:
 
+* Make sure that the plugin's configuration parameter "intranet base
+  url" is correctly configured. (NOTE: this is NOT the system
+  preference intranetBaseURL, but should normally have the same value.)
 * a new URL needs to be communicated to the vendor (the configuration
   page displays the URL to use).
 * the POST data-fields 'token', 'method' and 'class' can safely be
@@ -66,6 +69,19 @@ be used.
 There must also exist at least one budget in the acquisition module.
 
 Click "save configuration" after changing the configuration/.
+
+### Intranet base url
+
+The initial reception of the order data that is posted from the book
+vendor's site is only authenticated using the token in the URL (which
+should be kept secret between vendor and library).  The order data is
+stored as submitted in an intermediate database table until further
+processing (which requires an authenticated staff user with sufficient
+privileges).  As an extra precaution we also only accept the initial
+order datad from requiests that are using the hostname of the staff
+interface (the REST-API is normally open also from the OPAC).  This
+should normally be the same as the system preference intranetBaseURL
+but can be configured separately if needed.
 
 ### Record match rule
 
