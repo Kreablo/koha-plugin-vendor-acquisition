@@ -250,7 +250,6 @@ form:invalid .validation-error {
                           [% SET items_valid=0 %]
                        [% END %]
                      [% END %]
-                     items_valid: [% items_valid | html %]
                   <h5><a href="#record-[% record.element_id %]" role="button" data-toggle="collapse" data-bs-toggle="collapse" aria-expanded="[% IF items_valid %]false[% ELSE %]true[% END %]" aria-controls="record-[% record.element_id %]">[% record.author | html %], [% record.title | html %] <span class="fa fa-angle-down"></span></a></h5>
                   <div id="record-[% record.element_id %]" class="[% IF items_valid %]collapse [% END %]form-group">
                     <div class="row">
