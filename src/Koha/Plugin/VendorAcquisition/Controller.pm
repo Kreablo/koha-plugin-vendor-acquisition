@@ -11,9 +11,9 @@ sub add_order {
     my $c = shift->openapi->valid_input or return;
     my $plugin  = Koha::Plugin::VendorAcquisition->new;
     my $in_url = URI->new($c->req->url->to_abs->to_string);
-    my $in_host = $in_url->host_port;
+    my $in_host = $in_url->host;
     my $c_host_uri = URI->new($plugin->retrieve_data('intra_host'));
-    my $c_host = URI->new($plugin->retrieve_data('intra_host'))->host_port;
+    my $c_host = URI->new($plugin->retrieve_data('intra_host'))->host;
 
     if (lc $in_host ne lc $c_host) {
         $c->render(
