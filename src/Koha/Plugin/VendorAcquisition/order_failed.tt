@@ -29,13 +29,13 @@
         <p>[% MSG.receive_order_failure_message | html %]</p>
         [% IF !token_success %]
         <p>[% MSG.receive_order_failed_token | html %]</p>
-        [% ELSIF request_method != 'POST' %]
+        [% ELSIF request_method != 'POST' && !order_json_id %]
         <p>[% MSG.receive_order_not_posted %]</p>
         [% END %]
-        [% IF order.errors %]
+        [% IF order.all_errors %]
         <h4>[% MSG.errors %]</h4>
         <ul>
-        [% FOREACH error IN order.errors %]
+        [% FOREACH error IN order.all_errors %]
           <li><span class="error">[% error | html %]</span></li>
         [% END %]
         </ul>

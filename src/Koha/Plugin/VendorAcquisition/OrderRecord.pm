@@ -81,7 +81,7 @@ sub new_from_hash {
     };
 
     if ($@) {
-        $self->_err("Failed to parse MARC record: $@");
+        $self->{order}->_warn("Failed to parse MARC record: $@");
         return;
     }
 
@@ -440,7 +440,7 @@ sub validate_item_data {
         }
 
         if ($@) {
-            $self->_err("Failed to parse MARC record: $@");
+            $self->{order}->_warn("Failed to parse MARC record: $@");
             return;
         }
     } else {
@@ -695,7 +695,7 @@ sub _err {
         push @{$self->{errors}}, $msg;
     }
 
-    $self->{order}->_err("$msg", 1);
+    $self->{order}->_err($msg, 1);
 }
 
 sub _warn {
@@ -705,7 +705,7 @@ sub _warn {
         push @{$self->{warnings}}, $msg;
     }
 
-    $self->{order}->_warn("$msg", 1);
+    $self->{order}->_warn($msg, 1);
 }
 
 sub errors {

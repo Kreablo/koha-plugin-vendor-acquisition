@@ -169,7 +169,12 @@ sub update_from_cgi {
     }
 
     for my $record (@{$self->{records}}) {
-        $record->update_from_cgi($cgi);
+        eval {
+            $record->update_from_cgi($cgi);
+        };
+        if ($@) {
+            $self->_warn("Failed to update record: " . $@);
+        }
     }
 
     $self->record_duplicates;
@@ -265,9 +270,15 @@ sub validate_items {
 sub validate_item {
     my ($self, $item_data) = @_;
 
-    my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
+    eval {
+        my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
 
-    push @{$self->{records}}, $record;
+        push @{$self->{records}}, $record;
+    };
+
+    if ($@) {
+        $self->_warn("Failed to parse record: " . $@);
+    }
 }
 
 sub record_duplicates {
@@ -800,7 +811,7 @@ sub _warn {
         push @{$self->{warnings}}, $msg;
     }
 
-    $logger->warn("$msg");
+    $logger->warn($msg);
 }
 
 sub errors {
@@ -812,7 +823,7 @@ sub errors {
 sub all_errors {
     my $self = shift;
 
-    my @errors = @{$self->{errors}};
+    my @errors = (@{$self->{errors}});
 
     for my $record (@{$self->{records}}) {
         push @errors, $record->all_errors;

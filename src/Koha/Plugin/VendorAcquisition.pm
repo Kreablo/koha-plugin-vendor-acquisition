@@ -30,14 +30,14 @@ use Koha::Acquisition::Booksellers;
 use Koha::AuthorisedValues;
 use Koha::Database;
 
-our $VERSION = "3.1";
+our $VERSION = "3.2";
 our $API_VERSION = "1.1";
 
 our $metadata = {
     name            => 'Vendor Acquisition Module',
     author          => 'Andreas Jonsson',
     date_authored   => '2020-01-04',
-    date_updated    => "2025-10-24",
+    date_updated    => "2026-02-10",
     minimum_version => 20.05,
     maximum_version => '',
     version         => $VERSION,
@@ -880,7 +880,8 @@ sub vendor_order_receive {
                 order => $order,
                 token       => $self->retrieve_data('token'),
                 token_success => $token_success,
-                request_method => $cgi->request_method
+                request_method => $cgi->request_method,
+                order_json_id => scalar($cgi->param('order_json_id')),
                 );
 
             $self->output_html( $template->output() );
@@ -994,6 +995,10 @@ sub _init_order {
                     }
                     return $order;
                 }
+            } else {
+                return {
+                    errors => [ "Failed to load order with order_json_id=" . $cgi->param('order_json_id') ]
+                };
             }
         } elsif ($cgi->param('order')) {
             my $json = $cgi->param('order');
