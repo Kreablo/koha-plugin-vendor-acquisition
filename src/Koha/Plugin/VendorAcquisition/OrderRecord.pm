@@ -58,7 +58,7 @@ sub new_from_json {
 
     my $self = __PACKAGE__->new( $plugin, $lang, $order );
 
-    $self->update_from_json( $item_data );
+    return undef if !$self->update_from_json( $item_data );
 
     return $self;
 }
@@ -163,7 +163,7 @@ sub update_from_json {
     my ($self, $item_data) = @_;
 
     $self->{item_data} = $item_data;
-    $self->validate_item_data;
+    return 0 unless $self->validate_item_data;
 
     if (scalar(@{$self->{duplicates}}) > 0) {
         $self->{merge_biblionumber} = $self->{duplicates}->[0]->{biblionumber};
@@ -183,6 +183,8 @@ sub update_from_json {
     splice @{$self->{items}}, $self->{quantity};
 
     $self->set_barcode;
+
+    return 1;
 }
 
 sub update_from_cgi {
@@ -436,12 +438,12 @@ sub validate_item_data {
             };
         } else {
             $self->_err("Unknown marc record format: $format");
-            return;
+            return 0;
         }
 
         if ($@) {
             $self->{order}->_warn("Failed to parse MARC record: $@");
-            return;
+            return 0;
         }
     } else {
         $record = $self->build_record
@@ -449,7 +451,7 @@ sub validate_item_data {
 
     if (!$self->{quantity} =~ /^\d+$/) {
         $self->_err("Quantity is not an integer!");
-        return;
+        return 0;
     }
 
     $self->{record} = $record;
@@ -464,6 +466,7 @@ sub validate_item_data {
         $self->load_items;
     }
 
+    return 1;
 }
 
 sub set_barcode {

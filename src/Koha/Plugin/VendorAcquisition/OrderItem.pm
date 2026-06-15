@@ -206,10 +206,17 @@ sub process {
         $iteminfo->{replacementprice} = $self->{record}->{'price_inc_vat'};
     }
 
-    my $item = Koha::Item->new($iteminfo)->store;
+    my $item;
+    eval {
+       $item = Koha::Item->new($iteminfo)->store;
+    };
 
     if (!defined $item) {
-        $self->_err("Failed to generate koha item.");
+        if ($@) {
+            $self->_err("Failed to generate koha item: $@");
+        } else {
+            $self->_err("Failed to generate koha item.");
+        }
         return 0;
     }
 

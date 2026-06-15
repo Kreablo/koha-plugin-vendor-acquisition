@@ -273,7 +273,7 @@ sub validate_item {
     eval {
         my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_json($self->{plugin}, $self->{lang}, $self, $item_data);
 
-        push @{$self->{records}}, $record;
+        push @{$self->{records}}, $record if defined $record;
     };
 
     if ($@) {
@@ -520,7 +520,7 @@ sub load_records {
     while (my $row = $sth->fetchrow_hashref) {
         my $record = Koha::Plugin::VendorAcquisition::OrderRecord->new_from_hash($self->{plugin}, $self->{lang}, $self, $row);
 
-        push @{$self->{records}}, $record;
+        push @{$self->{records}}, $record if defined $record;
     }
 }
 
