@@ -14,7 +14,7 @@
     [% END %]
 [% END %]
 [% INCLUDE 'doc-head-open.inc' %]
-<style>
+<style[% nonce | $raw %]>
   button.save-button {
      font-size: larger;
   }
@@ -252,7 +252,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
     </div> <!-- /.col-sm-2.col-sm-pull-10 -->
   </div>
 </div>
-<script>
+<script[% nonce | $raw %]>
 [% INCLUDE "$config_js" %]
 </script>
 [% INCLUDE 'intranet-bottom.inc' %]
