@@ -53,7 +53,7 @@ $stash->set('defined' => sub { return defined $_[0]; });
 [% INCLUDE 'doc-head-open.inc' %]
 
 <title>Koha: [% MSG.module_name | html %]: [% MSG.receive_order | html %]</title>
-<style>
+<style[% nonce | $raw %]>
 #order_information_table th, #order_information_table td {
    text-align: left;
 }
@@ -387,7 +387,7 @@ form:invalid .validation-error {
     </div> <!-- /.col-sm-2.col-sm-pull-10 -->
   </div>
 </div>
-<script>
+<script[% nonce | $raw %]>
   [% INCLUDE "$receive_js" %]
 </script>
 [% INCLUDE 'intranet-bottom.inc' %]
